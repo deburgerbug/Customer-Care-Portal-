@@ -6,7 +6,7 @@ import {
   generateRefreshToken,
   verifyRefreshToken,
 } from "../utils/token.utils.js";
-import { sendPasswordResetEmail, sendVerificationEmail } from "../utils/email.utils.js";
+import { sendPasswordResetEmail } from "../utils/email.utils.js";
 
 // Helper:Calculate 7 days expiry for refresh token storage
 const getRefreshExpiry = () => new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
@@ -39,34 +39,23 @@ export async function registerUser({ name, email, password, role = "customer", d
     role,
     department: role === "employee" ? department?.trim() : null,
     customerId,
-    isEmailVerified: false,
   });
 
-  const rawVerificationToken = user.createEmailVerificationToken();
+  //Issue tokens
+  const accessToken = generateAccessToken(user);
+  const refreshToken = generateRefreshToken(user);
+
+  // Store refresh token in user document
+  user.refreshTokens.push({
+    token: refreshToken,
+    expiresAt: getRefreshExpiry(),
+  });
   await user.save();
-
-  const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
-  const verifyUrl = `${frontendUrl}/verify-email/${rawVerificationToken}`;
-
-  try {
-    if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-      await sendVerificationEmail({
-        to: user.email,
-        verifyUrl,
-        name: user.name,
-      });
-    } else {
-      console.warn(
-        "[Nodemailer] EMAIL_USER or EMAIL_PASS not set in backend/.env — verification email skipped."
-      );
-    }
-  } catch (emailError) {
-    console.error("[Nodemailer] Delivery failed:", emailError.message);
-  }
 
   return {
     user: user.toPublicJSON(),
-    message: "Registration successful. Please check your email to verify your account.",
+    accessToken,
+    refreshToken,
   };
 }
 
@@ -84,10 +73,6 @@ export async function loginUser({ email, password }) {
 
   if (!user.isActive) {
     throw new Error("Account has been deactivated. Please contact support.");
-  }
-
-  if (!user.isEmailVerified) {
-    throw new Error("Please verify your email address to log in.");
   }
 
   //  Issue fresh token pair
@@ -245,32 +230,3 @@ export async function resetPassword(rawToken, newPassword) {
     message: "Password reset successful. You can now log in with your new password.",
   };
 }
-
-export async function verifyEmail(rawToken) {
-  if (!rawToken) {
-    throw new Error("Verification token is required");
-  }
-
-  // Hash the incoming raw token with SHA-256 to match DB
-  const hashedToken = crypto.createHash("sha256").update(rawToken).digest("hex");
-
-  const user = await User.findOne({
-    emailVerificationToken: hashedToken,
-    emailVerificationExpires: { $gt: Date.now() },
-  }).select("+emailVerificationToken +emailVerificationExpires");
-
-  if (!user) {
-    throw new Error("Email verification token is invalid or has expired");
-  }
-
-  // Mark as verified
-  user.isEmailVerified = true;
-  user.emailVerificationToken = undefined;
-  user.emailVerificationExpires = undefined;
-  await user.save();
-
-  return {
-    message: "Email verified successfully. You can now log in.",
-  };
-}
-
