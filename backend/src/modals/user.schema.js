@@ -81,6 +81,21 @@ const userSchema = new mongoose.Schema(
       type: Date,
       select: false,
     },
+
+    isEmailVerified: {
+      type: Boolean,
+      default: false,
+    },
+
+    emailVerificationToken: {
+      type: String,
+      select: false,
+    },
+
+    emailVerificationExpires: {
+      type: Date,
+      select: false,
+    },
   },
   { timestamps: true }
 );
@@ -115,6 +130,24 @@ userSchema.methods.createPasswordResetToken = function () {
   return resetToken;
 };
 
+// Generate 32-byte cryptographic email verification token.
+userSchema.methods.createEmailVerificationToken = function () {
+  const verificationToken = crypto.randomBytes(32).toString("hex");
+
+  // Hash token with SHA-256 before saving to DB
+  this.emailVerificationToken = crypto
+    .createHash("sha256")
+    .update(verificationToken)
+    .digest("hex");
+
+  // Expires in 24 hours
+  this.emailVerificationExpires = Date.now() + 24 * 60 * 60 * 1000;
+
+  // Return unhashed token to be emailed to user
+  return verificationToken;
+};
+
+
 // Format public profile (strip sensitive fields)
 userSchema.methods.toPublicJSON = function () {
   return {
@@ -125,6 +158,7 @@ userSchema.methods.toPublicJSON = function () {
     department: this.department,
     customerId: this.customerId,
     isActive: this.isActive,
+    isEmailVerified: this.isEmailVerified,
     createdAt: this.createdAt,
     updatedAt: this.updatedAt,
   };
