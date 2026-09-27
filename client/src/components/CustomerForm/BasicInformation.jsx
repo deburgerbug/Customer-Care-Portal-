@@ -1,19 +1,43 @@
 import { calculateAge } from "../../utils/calculateAge";
 
+/**
+ * BasicInformation — First section of the CustomerForm
+ *
+ * Used in: CustomerForm.jsx — renders at the top of create/edit forms
+ *
+ * Props:
+ *  - customer: the customer object (firstName, lastName, gender, dob)
+ *  - onChange: event handler from CustomerForm that updates state
+ *  - errors: validation error messages keyed by field name (e.g. { firstName: "Required" })
+ *
+ * Fields: First Name, Last Name, Gender (select), Date of Birth (date picker), Age (auto-calculated, read-only)
+ */
 function BasicInformation({ customer, onChange, errors = {} }) {
-  const age = customer.dob
-    ? calculateAge(customer.dob)
-    : "";
+  // Calculate age from DOB using the calculateAge utility (returns "3 years", "2 months, 5 days", etc.)
+  const age = customer.dob ? calculateAge(customer.dob) : "";
+
+  // Reusable Tailwind classes for text inputs and selects
+  const baseInputStyles = "w-full px-3 py-2.5 border rounded-md bg-white text-gray-900 outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/15 transition";
+  // Error state adds red border + light red background
+  const errorInputStyles = "border-red-500 bg-red-50";
+  // Normal state has gray border
+  const normalInputStyles = "border-gray-200";
 
   return (
-    <section className="form-card">
-      <div className="card-header">
-        <h2>Customer Basic Information</h2>
+    // Card wrapper — white bordered box with padding and shadow
+    <section className="bg-white border border-gray-200 rounded-xl p-6 mb-6 shadow-sm">
+
+      {/* Section title — separated by a bottom border */}
+      <div className="mb-5 pb-3 border-b border-gray-200">
+        <h2 className="text-lg font-bold text-gray-900">Customer Basic Information</h2>
       </div>
 
-      <div className="form-grid">
-        <div className="form-group">
-          <label htmlFor="firstName">First Name *</label>
+      {/* Form grid — auto-fits columns with min 220px width */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+
+        {/* First Name field */}
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="firstName" className="text-sm font-semibold text-gray-700">First Name *</label>
           <input
             id="firstName"
             name="firstName"
@@ -21,13 +45,14 @@ function BasicInformation({ customer, onChange, errors = {} }) {
             placeholder="Enter first name"
             value={customer.firstName}
             onChange={onChange}
-            className={errors.firstName ? "input-error" : ""}
+            className={`${baseInputStyles} ${errors.firstName ? errorInputStyles : normalInputStyles}`}
           />
-          {errors.firstName && <span className="error-text">{errors.firstName}</span>}
+          {errors.firstName && <span className="text-xs font-medium text-red-600">{errors.firstName}</span>}
         </div>
 
-        <div className="form-group">
-          <label htmlFor="lastName">Last Name *</label>
+        {/* Last Name field */}
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="lastName" className="text-sm font-semibold text-gray-700">Last Name *</label>
           <input
             id="lastName"
             name="lastName"
@@ -35,30 +60,32 @@ function BasicInformation({ customer, onChange, errors = {} }) {
             placeholder="Enter last name"
             value={customer.lastName}
             onChange={onChange}
-            className={errors.lastName ? "input-error" : ""}
+            className={`${baseInputStyles} ${errors.lastName ? errorInputStyles : normalInputStyles}`}
           />
-          {errors.lastName && <span className="error-text">{errors.lastName}</span>}
+          {errors.lastName && <span className="text-xs font-medium text-red-600">{errors.lastName}</span>}
         </div>
 
-        <div className="form-group">
-          <label htmlFor="gender">Gender *</label>
+        {/* Gender dropdown */}
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="gender" className="text-sm font-semibold text-gray-700">Gender *</label>
           <select
             id="gender"
             name="gender"
             value={customer.gender}
             onChange={onChange}
-            className={errors.gender ? "input-error" : ""}
+            className={`${baseInputStyles} ${errors.gender ? errorInputStyles : normalInputStyles}`}
           >
             <option value="">Select Gender</option>
             <option value="Male">Male</option>
             <option value="Female">Female</option>
             <option value="Prefer Not to say">Prefer Not to say</option>
           </select>
-          {errors.gender && <span className="error-text">{errors.gender}</span>}
+          {errors.gender && <span className="text-xs font-medium text-red-600">{errors.gender}</span>}
         </div>
 
-        <div className="form-group">
-          <label htmlFor="dob">Date of Birth *</label>
+        {/* Date of Birth — max is today's date to prevent future dates */}
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="dob" className="text-sm font-semibold text-gray-700">Date of Birth *</label>
           <input
             id="dob"
             name="dob"
@@ -66,20 +93,21 @@ function BasicInformation({ customer, onChange, errors = {} }) {
             max={new Date().toLocaleDateString("en-CA")}
             value={customer.dob}
             onChange={onChange}
-            className={errors.dob ? "input-error" : ""}
+            className={`${baseInputStyles} ${errors.dob ? errorInputStyles : normalInputStyles}`}
           />
-          {errors.dob && <span className="error-text">{errors.dob}</span>}
+          {errors.dob && <span className="text-xs font-medium text-red-600">{errors.dob}</span>}
         </div>
 
-        <div className="form-group">
-          <label htmlFor="age">Age (Auto-calculated)</label>
+        {/* Age — read-only, auto-calculated from DOB, not editable by user */}
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="age" className="text-sm font-semibold text-gray-700">Age (Auto-calculated)</label>
           <input
             id="age"
             type="text"
             value={age || ""}
             readOnly
-            className="input-readonly"
             placeholder="Calculated from DOB"
+            className={`${baseInputStyles} border-gray-200 bg-gray-50 text-gray-500 cursor-not-allowed`}
           />
         </div>
       </div>

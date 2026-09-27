@@ -6,14 +6,32 @@ import AddressSection from "./AddressSection";
 import CommunicationSection from "./CommunicationSection";
 
 import { getPincodeDetails } from "../../services/pincodeAPI";
-import {createCustomer,updateCustomer,getCustomerById,} from "../../services/customerAPI";
+import {
+  createCustomer,
+  updateCustomer,
+  getCustomerById,
+} from "../../services/customerAPI";
 import { validateCustomer } from "../../utils/customerValidation";
 
+/**
+ * CustomerForm — Master form component for creating and editing customer records
+ *
+ * Used in: CustomerPage.jsx (mounted for both /customers/new and /customers/:id/edit)
+ *
+ * Responsibilities:
+ *  1. Edit Mode Detection: Checks for `id` in URL params via useParams()
+ *  2. State Management: Manages master `customer` state (basic info, addresses, communications)
+ *  3. Auto-fill Integration: Calls getPincodeDetails on 6-digit PIN entry to auto-populate City/State
+ *  4. Client-side Validation: Executes validateCustomer() before sending payload to backend
+ *  5. Data Sanitization: Strips temporary frontend client `id` properties before POST/PUT
+ *  6. API Integration: Calls createCustomer or updateCustomer and redirects to details view on success
+ */
 function CustomerForm() {
   const { id } = useParams();
   const navigate = useNavigate();
   const isEditMode = Boolean(id);
 
+  // Master customer form state
   const [customer, setCustomer] = useState({
     firstName: "",
     lastName: "",
@@ -41,11 +59,13 @@ function CustomerForm() {
     ],
   });
 
+  // UI & Network states
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(isEditMode);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [serverError, setServerError] = useState("");
 
+  // Load existing customer data if editing
   useEffect(() => {
     if (!id) return;
 
@@ -90,6 +110,7 @@ function CustomerForm() {
     loadCustomer();
   }, [id]);
 
+  // Handler for top-level basic info fields (firstName, lastName, gender, dob)
   function handleChange(event) {
     const { name, value } = event.target;
     setCustomer((prev) => ({
@@ -97,11 +118,13 @@ function CustomerForm() {
       [name]: value,
     }));
 
+    // Clear error message when user starts typing
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
     }
   }
 
+  // Address Section handlers
   function addAddress() {
     const newAddress = {
       id: crypto.randomUUID(),
@@ -147,6 +170,7 @@ function CustomerForm() {
     }));
   }
 
+  // Automatic postal code lookup to populate city and state
   async function handlePincodeLookup(addressId, pincode) {
     if (!pincode || pincode.trim().length !== 6) {
       return;
@@ -181,6 +205,7 @@ function CustomerForm() {
     }
   }
 
+  // Communication Section handlers
   function addCommunication() {
     const newCommunication = {
       id: crypto.randomUUID(),
@@ -205,7 +230,7 @@ function CustomerForm() {
         communications: prev.communications.map((comm) => {
           if (comm.id !== communicationId) return comm;
 
-          // If typing a mobile number, strip non-digits and limit length
+          // If typing a mobile number, strip non-digits and enforce length
           if (name === "mobile") {
             const countryCode = (comm.countryCode || "+91").trim();
             const maxDigits = countryCode === "+91" ? 10 : 15;
@@ -213,7 +238,7 @@ function CustomerForm() {
             return { ...comm, mobile: cleanedMobile };
           }
 
-          // For any other field (countryCode, email), just update directly
+          // For any other field (countryCode, email), update directly
           return { ...comm, [name]: value };
         }),
       };
@@ -234,10 +259,12 @@ function CustomerForm() {
     }));
   }
 
+  // Submit Handler
   async function handleSubmit(event) {
     event.preventDefault();
     setServerError("");
 
+    // Run client validation
     const validationErrors = validateCustomer(customer);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
@@ -245,6 +272,7 @@ function CustomerForm() {
       return;
     }
 
+    // Strip temporary frontend IDs before sending payload
     function sanitizeItem(item) {
       const copy = { ...item };
       delete copy.id;
@@ -281,44 +309,58 @@ function CustomerForm() {
     }
   }
 
+  // Loading spinner during customer profile fetch
   if (isLoading) {
     return (
-      <div className="state-container">
-        <div className="spinner"></div>
-        <p>Loading customer information...</p>
+      <div className="flex flex-col items-center justify-center min-h-[50vh] gap-3">
+        <div className="w-9 h-9 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-gray-500 font-medium text-sm">
+          Loading customer information...
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="form-container">
-      <div className="form-top-bar">
+    // Form page container — centered with max-width
+    <div className="max-w-5xl mx-auto px-4 py-8">
+      {/* Top Header Bar — title, subtitle, and back button */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
-          <h1 className="page-title">
-            {isEditMode ? "Edit Customer Form" : "New Customer Application Form"}
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
+            {isEditMode ? "Edit Customer Profile" : "New Customer Application"}
           </h1>
-          <p className="page-subtitle">
+          <p className="text-sm text-gray-500 mt-1">
             Customer Care Service Portal &bull; Fill in the customer profile details
           </p>
         </div>
-        <Link to="/" className="btn btn-secondary">
-          &larr; Back to Customer List
+
+        {/* Back to list button */}
+        <Link
+          to="/"
+          className="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 shadow-sm transition inline-flex items-center gap-1.5"
+        >
+          &larr; Back to Directory
         </Link>
       </div>
 
+      {/* Server error alert banner */}
       {serverError && (
-        <div className="error-banner alert-danger">
-          <strong>Error:</strong> {serverError}
+        <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm mb-6">
+          <span className="font-bold text-red-800">Error:</span> {serverError}
         </div>
       )}
 
+      {/* Main Form containing all 3 structured sections */}
       <form onSubmit={handleSubmit} noValidate>
+        {/* Section 1: Basic Information (Name, Gender, DOB, Age) */}
         <BasicInformation
           customer={customer}
           onChange={handleChange}
           errors={errors}
         />
 
+        {/* Section 2: Addresses (Primary + Secondary cards) */}
         <AddressSection
           addresses={customer.addresses}
           onAdd={addAddress}
@@ -328,6 +370,7 @@ function CustomerForm() {
           errors={errors}
         />
 
+        {/* Section 3: Communications (Country code, Phone, Email) */}
         <CommunicationSection
           communications={customer.communications}
           onAdd={addCommunication}
@@ -336,19 +379,24 @@ function CustomerForm() {
           errors={errors}
         />
 
-        <div className="form-actions-bar">
-          <Link to="/" className="btn btn-secondary">
+        {/* Action bar — Cancel and Submit buttons */}
+        <div className="flex justify-end items-center gap-3 pt-4 border-t border-gray-200 mt-8">
+          <Link
+            to="/"
+            className="px-5 py-2.5 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+          >
             Cancel
           </Link>
+
           <button
             type="submit"
-            className="btn btn-primary btn-lg"
             disabled={isSubmitting}
+            className="px-6 py-2.5 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed shadow-sm transition inline-flex items-center justify-center min-w-[160px]"
           >
             {isSubmitting
               ? isEditMode
-                ? "Updating Customer..."
-                : "Saving Customer..."
+                ? "Updating..."
+                : "Saving..."
               : isEditMode
               ? "Update Customer"
               : "Save Customer"}
