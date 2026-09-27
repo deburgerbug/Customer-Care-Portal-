@@ -117,3 +117,17 @@ export async function resetPassword(token, password) {
   }
   return data;
 }
+
+export async function verifyEmail(token) {
+  const response = await fetch(`${API_URL}/verify-email/${token}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" }
+  });
+
+  const data = await response.json();
+
+  if(!response.ok) {
+    throw new Error(data.message || "failed to verify email");
+  }
+  return data;
+}
