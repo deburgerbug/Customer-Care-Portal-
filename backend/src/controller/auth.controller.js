@@ -94,3 +94,16 @@ export async function getMe(req, res, next) {
     next(error);
   }
 }
+
+export async function verifyEmail(req, res, next) {
+  try {
+    const { token } = req.params;
+    const result = await authService.verifyEmail(token);
+    res.status(200).json({
+      success: true,
+      ...result,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
