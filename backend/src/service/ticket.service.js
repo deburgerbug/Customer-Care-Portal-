@@ -133,6 +133,7 @@ export async function addComment(ticketId, text, isInternal, user) {
   });
 
   await ticket.save();
+  await ticket.populate("comments.userId", "name role");
   
   if (user.role === "customer") {
     const ticketObj = ticket.toObject();
