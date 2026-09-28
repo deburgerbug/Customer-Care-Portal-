@@ -90,6 +90,7 @@ function App() {
           {/* Customer Routes */}
           <Route path="/customer" element={<ProtectedRoute allowedRoles={["customer"]}><CustomerLayout /></ProtectedRoute>}>
             <Route path="profile" element={<CustomerDetailsPage />} />
+            <Route path="profile/new" element={<CustomerPage />} />
             <Route path="support" element={<TicketListPage />} />
             <Route path="support/new" element={<TicketFormPage />} />
             <Route path="support/:id" element={<TicketDetailsPage />} />
