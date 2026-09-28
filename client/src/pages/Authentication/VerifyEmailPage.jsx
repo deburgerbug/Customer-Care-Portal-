@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
-import { verifyEmail } from "../services/authAPI";
+import { verifyEmail } from "../../services/authAPI";
 
 /**
  * VerifyEmailPage — Handles email verification via token link
@@ -46,7 +46,7 @@ function VerifyEmailPage() {
   return (
     <div className="flex items-center justify-center min-h-[80vh] px-4">
       <div className="bg-white border border-gray-200 rounded-xl shadow-md p-10 w-full max-w-md text-center">
-        
+
         {status === "loading" && (
           <>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Verifying Email...</h1>

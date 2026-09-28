@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { registerUser } from "../services/authAPI";
-import { useAuth } from "../context/AuthContext";
+import { registerUser } from "../../services/authAPI";
+import { useAuth } from "../../context/AuthContext";
 
 /**
  * RegisterPage — New user registration screen
@@ -55,11 +55,11 @@ function RegisterPage() {
       setIsSubmitting(true);
       // Call POST /auth/register → returns { message, user }
       const data = await registerUser({ name, email, password });
-      
+
       // We don't save auth or navigate away immediately.
       // Instead, we show the success message (e.g. check your email to verify).
       setSuccessMsg(data.message || "Registration successful. Please check your email to verify your account.");
-      
+
       // Clear form
       setName("");
       setEmail("");

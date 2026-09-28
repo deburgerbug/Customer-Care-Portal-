@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { loginUser } from "../services/authAPI";
-import { useAuth } from "../context/AuthContext";
+import { loginUser } from "../../services/authAPI";
+import { useAuth } from "../../context/AuthContext";
 
 /**
  * LoginPage — User sign-in screen
@@ -41,8 +41,16 @@ function LoginPage() {
       const data = await loginUser({ email, password });
       // Save tokens to localStorage + update AuthContext state
       saveAuth(data);
-      // Redirect to customer list (home page)
-      navigate("/");
+
+      // Smart Routing based on role
+      const role = data.user?.role;
+      if (role === "admin") {
+        navigate("/admin/customers");
+      } else if (role === "employee") {
+        navigate("/employee/customers");
+      } else {
+        navigate("/customer/profile");
+      }
     } catch (err) {
       setError(err.message || "Login failed");
     } finally {

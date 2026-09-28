@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:3000/auth";
+export const API_URL = "http://localhost:3000/auth";
 
 export async function loginUser({ email, password }) {
   const response = await fetch(`${API_URL}/login`, {
@@ -87,16 +87,16 @@ export async function getMe() {
   return data;
 }
 
-export async function forgotPassword(email){
+export async function forgotPassword(email) {
   const response = await fetch(`${API_URL}/forgot-password`, {
     method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({email}),
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
   });
 
   const data = await response.json();
 
-  if(!response.ok) {
+  if (!response.ok) {
     throw new Error(data.message || "failed to send reset link");
   }
 
@@ -104,15 +104,15 @@ export async function forgotPassword(email){
 }
 
 export async function resetPassword(token, password) {
-  const response = await fetch(`${API_URL}/reset-password/${token}`,{
+  const response = await fetch(`${API_URL}/reset-password/${token}`, {
     method: "POST",
-    headers:{"Content-Type": "application/json"},
-    body: JSON.stringify({ password})
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ password })
   });
 
   const data = await response.json()
 
-  if(!response.ok){
+  if (!response.ok) {
     throw new Error(data.message || "failed to reset password")
   }
   return data;
@@ -126,7 +126,7 @@ export async function verifyEmail(token) {
 
   const data = await response.json();
 
-  if(!response.ok) {
+  if (!response.ok) {
     throw new Error(data.message || "failed to verify email");
   }
   return data;

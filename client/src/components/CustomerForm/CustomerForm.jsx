@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 import BasicInformation from "./BasicInformation";
 import AddressSection from "./AddressSection";
@@ -29,6 +30,8 @@ import { validateCustomer } from "../../utils/customerValidation";
 function CustomerForm() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user, saveAuth } = useAuth();
+  const basePath = user?.role ? `/${user.role}` : "";
   const isEditMode = Boolean(id);
 
   // Master customer form state
@@ -37,6 +40,7 @@ function CustomerForm() {
     lastName: "",
     gender: "",
     dob: "",
+    assignedTo: "",
     addresses: [
       {
         id: crypto.randomUUID(),
@@ -81,6 +85,7 @@ function CustomerForm() {
           lastName: data.lastName || "",
           gender: data.gender || "",
           dob: data.dob ? data.dob.substring(0, 10) : "",
+          assignedTo: data.assignedTo || "",
           addresses: (data.addresses || []).map((addr) => ({
             type: addr.type || "primary",
             address: addr.address || "",
@@ -287,6 +292,7 @@ function CustomerForm() {
       lastName: (customer.lastName || "").trim(),
       gender: customer.gender,
       dob: customer.dob,
+      assignedTo: customer.assignedTo || null,
       addresses: customer.addresses.map(sanitizeItem),
       communications: customer.communications.map(sanitizeItem),
     };
@@ -295,11 +301,28 @@ function CustomerForm() {
       setIsSubmitting(true);
       if (isEditMode) {
         await updateCustomer(id, payload);
-        navigate(`/customers/${id}`);
+        if (user?.role === "customer") {
+          navigate("/customer/profile");
+        } else {
+          navigate(`${basePath}/customers/${id}`);
+        }
       } else {
         const response = await createCustomer(payload);
         const createdId = response.data?._id || response._id;
-        navigate(`/customers/${createdId}`);
+        
+        if (user?.role === "customer") {
+          // Update the user object in localStorage and AuthContext
+          const updatedUser = { ...user, customerId: createdId };
+          const tokens = {
+            accessToken: localStorage.getItem("accessToken"),
+            refreshToken: localStorage.getItem("refreshToken"),
+            user: updatedUser
+          };
+          saveAuth(tokens);
+          navigate("/customer/profile");
+        } else {
+          navigate(`${basePath}/customers/${createdId}`);
+        }
       }
     } catch (error) {
       setServerError(error.message || "Failed to save customer");
@@ -337,10 +360,10 @@ function CustomerForm() {
 
         {/* Back to list button */}
         <Link
-          to="/"
+          to={user?.role === "customer" ? `/customer/profile` : `${basePath}/customers`}
           className="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 shadow-sm transition inline-flex items-center gap-1.5"
         >
-          &larr; Back to Directory
+          &larr; Back
         </Link>
       </div>
 
@@ -382,7 +405,7 @@ function CustomerForm() {
         {/* Action bar — Cancel and Submit buttons */}
         <div className="flex justify-end items-center gap-3 pt-4 border-t border-gray-200 mt-8">
           <Link
-            to="/"
+            to={user?.role === "customer" ? `/customer/profile` : `${basePath}/customers`}
             className="px-5 py-2.5 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition"
           >
             Cancel

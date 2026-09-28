@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { forgotPassword } from "../services/authAPI";
+import { forgotPassword } from "../../services/authAPI";
 
 /**
  * ForgotPasswordPage — Request Password Reset Screen

@@ -1,0 +1,166 @@
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import { getTickets } from "../../services/ticketAPI";
+
+/**
+ * TicketListPage — Shared view for listing support tickets.
+ * Routes: /customer/support, /employee/support, /admin/support
+ * Displays a table of tickets. The data returned adapts to the user's role 
+ * (e.g., customers see only their own tickets, employees see tickets for their assigned customers).
+ */
+export default function TicketListPage() {
+  const { user } = useAuth();
+  const [tickets, setTickets] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const isStaff = user.role === "admin" || user.role === "employee";
+  const basePath = user.role === "customer" ? "/customer" : `/${user.role}`;
+
+  useEffect(() => {
+    async function fetchTickets() {
+      try {
+        setIsLoading(true);
+        const data = await getTickets();
+        setTickets(data.tickets || []);
+      } catch (err) {
+        setError(err.message || "Failed to load tickets");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchTickets();
+  }, []);
+
+  function getStatusColor(status) {
+    switch (status) {
+      case "open":
+        return "bg-green-100 text-green-800 border-green-200";
+      case "in-progress":
+        return "bg-blue-100 text-blue-800 border-blue-200";
+      case "resolved":
+      case "closed":
+        return "bg-gray-100 text-gray-800 border-gray-200";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  }
+
+  function getPriorityColor(priority) {
+    switch (priority) {
+      case "urgent":
+      case "high":
+        return "text-red-600 font-bold";
+      case "medium":
+        return "text-yellow-600 font-semibold";
+      case "low":
+      default:
+        return "text-gray-500";
+    }
+  }
+
+  return (
+    <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
+            Support Tickets
+          </h1>
+          <p className="text-sm text-gray-500 mt-1">
+            {isStaff
+              ? "Manage and resolve customer support requests"
+              : "View and track your support requests"}
+          </p>
+        </div>
+
+        {user.role === "customer" && (
+          <Link
+            to={`${basePath}/support/new`}
+            className="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-sm hover:bg-blue-700 transition"
+          >
+            + New Support Ticket
+          </Link>
+        )}
+      </div>
+
+      {error && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+          {error}
+        </div>
+      )}
+
+      <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+        {isLoading ? (
+          <div className="flex justify-center p-12">
+            <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : tickets.length === 0 ? (
+          <div className="text-center p-12 text-gray-500">
+            <p className="text-lg font-medium text-gray-900 mb-1">No tickets found</p>
+            <p className="text-sm">
+              {isStaff ? "Your queue is empty!" : "You haven't submitted any support requests yet."}
+            </p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wider border-b border-gray-200">
+                  <th className="py-3 px-6 font-semibold">Ticket</th>
+                  {isStaff && <th className="py-3 px-6 font-semibold">Customer</th>}
+                  <th className="py-3 px-6 font-semibold">Status</th>
+                  <th className="py-3 px-6 font-semibold">Priority</th>
+                  <th className="py-3 px-6 font-semibold text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 text-sm">
+                {tickets.map((ticket) => (
+                  <tr key={ticket._id} className="hover:bg-gray-50 transition">
+                    <td className="py-4 px-6">
+                      <p className="font-bold text-gray-900 truncate max-w-[200px] sm:max-w-xs">
+                        {ticket.title}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        {new Date(ticket.createdAt).toLocaleDateString()}
+                      </p>
+                    </td>
+                    {isStaff && (
+                      <td className="py-4 px-6">
+                        <span className="font-medium text-gray-700">
+                          {ticket.customerId?.firstName} {ticket.customerId?.lastName}
+                        </span>
+                      </td>
+                    )}
+                    <td className="py-4 px-6">
+                      <span
+                        className={`inline-block px-2.5 py-1 text-xs font-bold border rounded-full capitalize ${getStatusColor(
+                          ticket.status
+                        )}`}
+                      >
+                        {ticket.status}
+                      </span>
+                    </td>
+                    <td className="py-4 px-6">
+                      <span className={`capitalize ${getPriorityColor(ticket.priority)}`}>
+                        {ticket.priority}
+                      </span>
+                    </td>
+                    <td className="py-4 px-6 text-right">
+                      <Link
+                        to={`${basePath}/support/${ticket._id}`}
+                        className="text-blue-600 font-semibold hover:text-blue-800 transition text-sm"
+                      >
+                        View &rarr;
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

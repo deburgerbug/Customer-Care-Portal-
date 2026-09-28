@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { resetPassword } from "../services/authAPI";
+import { resetPassword } from "../../services/authAPI";
 
 /**
  * ResetPasswordPage — Set New Password Screen

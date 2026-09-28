@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { getCustomers, deleteCustomer } from "../services/customerAPI";
-import DeleteConfirmModal from "../components/DeleteConfirmModal";
+import { getCustomers, deleteCustomer } from "../../services/customerAPI";
+import { useAuth } from "../../context/AuthContext";
+import DeleteConfirmModal from "../../components/DeleteConfirmModal";
 
 /**
  * CustomerListPage — Main Customer Directory Table View
@@ -17,6 +18,9 @@ import DeleteConfirmModal from "../components/DeleteConfirmModal";
  *  5. Loading & Empty States: clean visual placeholders for all states
  */
 function CustomerListPage() {
+  const { user } = useAuth();
+  const basePath = user?.role ? `/${user.role}` : "";
+
   // Customer list & pagination state
   const [customers, setCustomers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -115,7 +119,7 @@ function CustomerListPage() {
 
         {/* Primary "+ Add New Customer" CTA button */}
         <Link
-          to="/customers/new"
+          to={`${basePath}/customers/new`}
           className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-sm transition inline-flex items-center gap-2"
         >
           <span>+</span> Add New Customer
@@ -215,7 +219,7 @@ function CustomerListPage() {
           </p>
           {!debouncedSearch ? (
             <Link
-              to="/customers/new"
+              to={`${basePath}/customers/new`}
               className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-sm text-sm transition inline-block"
             >
               + Create First Customer
@@ -243,7 +247,7 @@ function CustomerListPage() {
                   <th className="py-3.5 px-6 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100 text-sm">
+              <tbody className="divide-y-1 divide-gray-100 text-sm">
                 {customers.map((customer, index) => {
                   const customerFullName = `${customer.firstName || ""} ${customer.lastName || ""}`;
 
@@ -272,7 +276,7 @@ function CustomerListPage() {
                         <div className="inline-flex items-center justify-end gap-2">
                           {/* View Form Button */}
                           <Link
-                            to={`/customers/${customer._id}`}
+                            to={`${basePath}/customers/${customer._id}`}
                             className="px-2.5 py-1 text-xs font-semibold text-blue-600 bg-blue-50/60 border border-blue-200 rounded-md hover:bg-blue-600 hover:text-white transition"
                             title="View customer application form"
                           >
@@ -281,27 +285,29 @@ function CustomerListPage() {
 
                           {/* Edit Button */}
                           <Link
-                            to={`/customers/${customer._id}/edit`}
+                            to={`${basePath}/customers/${customer._id}/edit`}
                             className="px-2.5 py-1 text-xs font-semibold text-gray-700 bg-gray-50 border border-gray-300 rounded-md hover:bg-gray-200 transition"
                             title="Edit customer information"
                           >
                             &#9998; Edit
                           </Link>
 
-                          {/* Delete Button (Triggers Confirmation Modal) */}
-                          <button
-                            type="button"
-                            className="px-2.5 py-1 text-xs font-semibold text-red-600 bg-red-50/60 border border-red-200 rounded-md hover:bg-red-600 hover:text-white transition"
-                            title="Delete customer"
-                            onClick={() =>
-                              setCustomerToDelete({
-                                id: customer._id,
-                                name: customerFullName,
-                              })
-                            }
-                          >
-                            Delete
-                          </button>
+                          {/* Delete Button (Admins Only) */}
+                          {user?.role === "admin" && (
+                            <button
+                              type="button"
+                              className="px-2.5 py-1 text-xs font-semibold text-red-600 bg-red-50/60 border border-red-200 rounded-md hover:bg-red-600 hover:text-white transition"
+                              title="Delete customer"
+                              onClick={() =>
+                                setCustomerToDelete({
+                                  id: customer._id,
+                                  name: customerFullName,
+                                })
+                              }
+                            >
+                              Delete
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -331,11 +337,10 @@ function CustomerListPage() {
                     <button
                       key={pageNum}
                       type="button"
-                      className={`w-8 h-8 text-xs font-semibold rounded-md transition ${
-                        pageNum === page
-                          ? "bg-blue-600 text-white shadow-sm"
-                          : "text-gray-700 bg-white border border-gray-200 hover:bg-gray-100"
-                      }`}
+                      className={`w-8 h-8 text-xs font-semibold rounded-md transition ${pageNum === page
+                        ? "bg-blue-600 text-white shadow-sm"
+                        : "text-gray-700 bg-white border border-gray-200 hover:bg-gray-100"
+                        }`}
                       onClick={() => setPage(pageNum)}
                     >
                       {pageNum}

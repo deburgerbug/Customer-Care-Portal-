@@ -1,4 +1,7 @@
+import { useState, useEffect } from "react";
 import { calculateAge } from "../../utils/calculateAge";
+import { useAuth } from "../../context/AuthContext";
+import { getEmployees } from "../../services/userAPI";
 
 /**
  * BasicInformation — First section of the CustomerForm
@@ -13,6 +16,24 @@ import { calculateAge } from "../../utils/calculateAge";
  * Fields: First Name, Last Name, Gender (select), Date of Birth (date picker), Age (auto-calculated, read-only)
  */
 function BasicInformation({ customer, onChange, errors = {} }) {
+  const { user } = useAuth();
+  const [employees, setEmployees] = useState([]);
+
+  // Fetch employees if user is an admin
+  useEffect(() => {
+    async function fetchEmployees() {
+      if (user?.role === "admin") {
+        try {
+          const res = await getEmployees();
+          setEmployees(res.data || []);
+        } catch (err) {
+          console.error("Failed to fetch employees:", err);
+        }
+      }
+    }
+    fetchEmployees();
+  }, [user]);
+
   // Calculate age from DOB using the calculateAge utility (returns "3 years", "2 months, 5 days", etc.)
   const age = customer.dob ? calculateAge(customer.dob) : "";
 
@@ -110,6 +131,28 @@ function BasicInformation({ customer, onChange, errors = {} }) {
             className={`${baseInputStyles} border-gray-200 bg-gray-50 text-gray-500 cursor-not-allowed`}
           />
         </div>
+
+        {/* Assigned Employee Dropdown (Admin Only) */}
+        {user?.role === "admin" && (
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="assignedTo" className="text-sm font-semibold text-gray-700">Assign to Employee</label>
+            <select
+              id="assignedTo"
+              name="assignedTo"
+              value={customer.assignedTo || ""}
+              onChange={onChange}
+              className={`${baseInputStyles} ${errors.assignedTo ? errorInputStyles : normalInputStyles}`}
+            >
+              <option value="">Unassigned (Admin only view)</option>
+              {employees.map((emp) => (
+                <option key={emp._id} value={emp._id}>
+                  {emp.name} ({emp.email})
+                </option>
+              ))}
+            </select>
+            {errors.assignedTo && <span className="text-xs font-medium text-red-600">{errors.assignedTo}</span>}
+          </div>
+        )}
       </div>
     </section>
   );

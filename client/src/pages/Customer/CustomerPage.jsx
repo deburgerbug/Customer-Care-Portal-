@@ -1,4 +1,4 @@
-import CustomerForm from "../components/CustomerForm/CustomerForm";
+import CustomerForm from "../../components/CustomerForm/CustomerForm";
 
 /**
  * CustomerPage — Page-level wrapper for creating and editing customer profiles

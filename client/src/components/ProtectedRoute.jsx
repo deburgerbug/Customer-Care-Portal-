@@ -10,9 +10,10 @@ import { useAuth } from "../context/AuthContext";
  * Behavior:
  *  - If auth is still loading → show a spinner
  *  - If user is NOT logged in → redirect to /login
- *  - If user IS logged in → render the child page
+ *  - If allowedRoles is provided and user role is not in it → redirect to a default safe page
+ *  - If user IS logged in and authorized → render the child page
  */
-function ProtectedRoute({ children }) {
+function ProtectedRoute({ children, allowedRoles }) {
   const { user, isLoading } = useAuth();
 
   // Show loading spinner while checking auth state (e.g. reading localStorage)
@@ -33,7 +34,15 @@ function ProtectedRoute({ children }) {
     return <Navigate to="/login" replace />;
   }
 
-  // User is authenticated → render the protected page
+  // Role check
+  if (allowedRoles && !allowedRoles.includes(user.role)) {
+    // If they aren't authorized for this route, bounce them to their correct home
+    if (user.role === "admin") return <Navigate to="/admin/customers" replace />;
+    if (user.role === "employee") return <Navigate to="/employee/customers" replace />;
+    return <Navigate to="/customer/profile" replace />;
+  }
+
+  // User is authenticated and authorized → render the protected page
   return children;
 }
 
