@@ -1,19 +1,10 @@
-const API_URL = "http://localhost:3000/customers";
+import { apiClient } from "../utils/apiClient";
 
-// Helper: Get headers with auth token
-function getHeaders() {
-  const token = localStorage.getItem("accessToken");
-  const headers = { "Content-Type": "application/json" };
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
-  }
-  return headers;
-}
+const API_URL = "/customers";
 
 export async function createCustomer(customerData) {
-  const response = await fetch(API_URL, {
+  const response = await apiClient(API_URL, {
     method: "POST",
-    headers: getHeaders(),
     body: JSON.stringify(customerData),
   });
 
@@ -31,9 +22,7 @@ export async function getCustomers(params = {}) {
     Object.entries(params).filter(([_, v]) => v !== undefined && v !== "")
   ).toString();
 
-  const response = await fetch(`${API_URL}${query ? `?${query}` : ""}`, {
-    headers: getHeaders(),
-  });
+  const response = await apiClient(`${API_URL}${query ? `?${query}` : ""}`);
   const data = await response.json();
 
   if (!response.ok) {
@@ -44,9 +33,7 @@ export async function getCustomers(params = {}) {
 }
 
 export async function getCustomerById(customerId) {
-  const response = await fetch(`${API_URL}/${customerId}`, {
-    headers: getHeaders(),
-  });
+  const response = await apiClient(`${API_URL}/${customerId}`);
 
   const data = await response.json();
 
@@ -58,9 +45,8 @@ export async function getCustomerById(customerId) {
 }
 
 export async function updateCustomer(customerId, customerData) {
-  const response = await fetch(`${API_URL}/${customerId}`, {
+  const response = await apiClient(`${API_URL}/${customerId}`, {
     method: "PUT",
-    headers: getHeaders(),
     body: JSON.stringify(customerData),
   });
 
@@ -74,9 +60,8 @@ export async function updateCustomer(customerId, customerData) {
 }
 
 export async function deleteCustomer(customerId) {
-  const response = await fetch(`${API_URL}/${customerId}`, {
+  const response = await apiClient(`${API_URL}/${customerId}`, {
     method: "DELETE",
-    headers: getHeaders(),
   });
 
   const data = await response.json();
@@ -89,9 +74,7 @@ export async function deleteCustomer(customerId) {
 }
 
 export async function getCustomerMetrics() {
-  const response = await fetch(`${API_URL}/metrics`, {
-    headers: getHeaders(),
-  });
+  const response = await apiClient(`${API_URL}/metrics`);
   const data = await response.json();
   if (!response.ok) {
     throw new Error(data.message || "Failed to fetch customer metrics");
@@ -100,11 +83,10 @@ export async function getCustomerMetrics() {
 }
 
 export async function deleteSecondaryAddress(customerId, addressId) {
-  const response = await fetch(
+  const response = await apiClient(
     `${API_URL}/${customerId}/addresses/${addressId}`,
     {
       method: "DELETE",
-      headers: getHeaders(),
     }
   );
 
@@ -118,11 +100,10 @@ export async function deleteSecondaryAddress(customerId, addressId) {
 }
 
 export async function deleteSecondaryCommunication(customerId, communicationId) {
-  const response = await fetch(
+  const response = await apiClient(
     `${API_URL}/${customerId}/communications/${communicationId}`,
     {
       method: "DELETE",
-      headers: getHeaders(),
     }
   );
 

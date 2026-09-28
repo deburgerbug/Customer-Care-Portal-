@@ -1,12 +1,9 @@
-const API_URL = "http://localhost:3000/users";
+import { apiClient } from "../utils/apiClient";
+
+const API_URL = "/users";
 
 export async function getEmployees() {
-  const accessToken = localStorage.getItem("accessToken");
-  const response = await fetch(`${API_URL}/employees`, {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
+  const response = await apiClient(`${API_URL}/employees`);
 
   const data = await response.json();
 
@@ -18,13 +15,8 @@ export async function getEmployees() {
 }
 
 export async function createEmployee(employeeData) {
-  const accessToken = localStorage.getItem("accessToken");
-  const response = await fetch(`${API_URL}/employees`, {
+  const response = await apiClient(`${API_URL}/employees`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${accessToken}`,
-    },
     body: JSON.stringify(employeeData),
   });
   
@@ -34,13 +26,8 @@ export async function createEmployee(employeeData) {
 }
 
 export async function updateEmployee(id, employeeData) {
-  const accessToken = localStorage.getItem("accessToken");
-  const response = await fetch(`${API_URL}/employees/${id}`, {
+  const response = await apiClient(`${API_URL}/employees/${id}`, {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${accessToken}`,
-    },
     body: JSON.stringify(employeeData),
   });
   
@@ -50,12 +37,8 @@ export async function updateEmployee(id, employeeData) {
 }
 
 export async function deleteEmployee(id) {
-  const accessToken = localStorage.getItem("accessToken");
-  const response = await fetch(`${API_URL}/employees/${id}`, {
+  const response = await apiClient(`${API_URL}/employees/${id}`, {
     method: "DELETE",
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
   });
   
   const data = await response.json();
