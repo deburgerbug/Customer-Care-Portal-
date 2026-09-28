@@ -65,6 +65,15 @@ const customerSchema = new mongoose.Schema(
                 message: "At least one communication record is required"
             },
         },
+        assignedTo: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+            default: null
+        },
+        isViewedByEmployee: {
+            type: Boolean,
+            default: false
+        }
     },
     {
         timestamps: true

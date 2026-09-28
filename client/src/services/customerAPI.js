@@ -88,6 +88,17 @@ export async function deleteCustomer(customerId) {
   return data;
 }
 
+export async function getCustomerMetrics() {
+  const response = await fetch(`${API_URL}/metrics`, {
+    headers: getHeaders(),
+  });
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || "Failed to fetch customer metrics");
+  }
+  return data;
+}
+
 export async function deleteSecondaryAddress(customerId, addressId) {
   const response = await fetch(
     `${API_URL}/${customerId}/addresses/${addressId}`,

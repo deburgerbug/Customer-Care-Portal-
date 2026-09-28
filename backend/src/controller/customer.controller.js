@@ -2,7 +2,7 @@ import * as customerService from "../service/customer.service.js"
 
 export async function createCustomer(req, res, next){
     try{
-        const customer = await customerService.createCustomer(req.body);
+        const customer = await customerService.createCustomer(req.body, req.user);
 
         res.status(201).json({
             success: true,
@@ -16,7 +16,7 @@ export async function createCustomer(req, res, next){
 
 export async function getCustomers(req, res, next) {
   try {
-    const { customers, pagination } = await customerService.getCustomers(req.query);
+    const { customers, pagination } = await customerService.getCustomers(req.query, req.user);
 
     res.status(200).json({
       success: true,
@@ -28,9 +28,27 @@ export async function getCustomers(req, res, next) {
   }
 }
 
+export async function getMetrics(req, res, next) {
+  try {
+    let unreadCustomers = 0;
+    if (req.user.role === "employee") {
+      unreadCustomers = await customerService.getUnreadAssignedCount(req.user.id);
+    }
+    
+    res.status(200).json({
+      success: true,
+      data: {
+        unreadCustomers,
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 export async function getCustomerById(req, res, next) {
   try{
-    const customer= await customerService.getCustomerById(req.params.id);
+    const customer = await customerService.getCustomerById(req.params.id, req.user);
     
     if(!customer){
       return res.status(404).json({
@@ -52,7 +70,8 @@ export async function updateCustomer(req, res, next) {
   try {
     const customer = await customerService.updateCustomer(
       req.params.id,
-      req.body
+      req.body,
+      req.user
     );
 
     if (!customer) {
@@ -75,7 +94,8 @@ export async function deleteSecondaryAddress(req, res, next) {
   try {
     const customer = await customerService.deleteSecondaryAddress(
       req.params.customerId,
-      req.params.addressId
+      req.params.addressId,
+      req.user
     );
 
     res.status(200).json({
@@ -92,7 +112,8 @@ export async function deleteSecondaryCommunication(req, res, next) {
     const customer =
       await customerService.deleteSecondaryCommunication(
         req.params.customerId,
-        req.params.communicationId
+        req.params.communicationId,
+        req.user
       );
 
     res.status(200).json({
@@ -108,7 +129,8 @@ export async function deleteSecondaryCommunication(req, res, next) {
 export async function deleteCustomer(req, res, next) {
   try {
     const customer = await customerService.deleteCustomer(
-      req.params.id
+      req.params.id,
+      req.user
     );
 
     if (!customer) {

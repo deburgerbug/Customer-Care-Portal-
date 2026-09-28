@@ -1,19 +1,56 @@
 import Customer from "../modals/customer.schema.js";
+import User from "../modals/user.schema.js";
 import { validateCustomerData } from "../utils/customer.validation.js";
-export async function createCustomer(customerData) {
+
+/**
+ * Helper to generate database filter based on user role.
+ * - Admin: sees all
+ * - Employee: sees assigned customers
+ * - Customer: sees only their own profile
+ */
+function getAuthFilter(user) {
+  if (user.role === "admin") return {};
+  if (user.role === "employee") return { assignedTo: user.id };
+  return { _id: user.customerId };
+}
+
+/**
+ * Creates a new customer record.
+ * @param {Object} customerData - Customer fields
+ * @param {Object} user - Authenticated user context
+ */
+export async function createCustomer(customerData, user) {
   validateCustomerData(customerData);
+  
+  // If employee creates customer, automatically assign to them
+  if (user.role === "employee") {
+    customerData.assignedTo = user.id;
+  }
+  
   const customer = await Customer.create(customerData);
+
+  // If a customer is creating their own profile, link it to their user account
+  if (user.role === "customer") {
+    await User.findByIdAndUpdate(user.id, { customerId: customer._id });
+  }
 
   return customer;
 }
 
-export async function getCustomers(queryOptions = {}) {
+/**
+ * Fetches a paginated list of customers, applying RBAC filters.
+ * @param {Object} queryOptions - Pagination & search params
+ * @param {Object} user - Authenticated user context
+ */
+export async function getCustomers(queryOptions = {}, user) {
   const page = Math.max(1, parseInt(queryOptions.page, 10) || 1);
   const limit = Math.max(1, Math.min(100, parseInt(queryOptions.limit, 10) || 5));
   const skip = (page - 1) * limit;
 
   const search = (queryOptions.search || "").trim();
-  const filter = {};
+  
+  // Apply base auth filter
+  const filter = getAuthFilter(user);
 
   if (search) {
     const searchRegex = new RegExp(search, "i");
@@ -49,15 +86,44 @@ export async function getCustomers(queryOptions = {}) {
   };
 }
 
-export async function getCustomerById(customerId) {
-  const customer = await Customer.findById(customerId);
+/**
+ * Fetches a single customer by ID, enforcing RBAC filters.
+ * @param {string} customerId - ID of customer to fetch
+ * @param {Object} user - Authenticated user context
+ */
+export async function getCustomerById(customerId, user) {
+  let customer = await Customer.findOne({
+    _id: customerId,
+    ...getAuthFilter(user)
+  });
+
+  if (!customer) {
+    throw new Error("Customer not found");
+  }
+
+  // If an employee views their assigned customer, mark as viewed
+  if (user.role === "employee" && !customer.isViewedByEmployee) {
+    customer.isViewedByEmployee = true;
+    await customer.save();
+  }
+
   return customer;
 }
 
-export async function updateCustomer(customerId, customerData) {
+export async function getUnreadAssignedCount(employeeId) {
+  return await Customer.countDocuments({ assignedTo: employeeId, isViewedByEmployee: false });
+}
+
+/**
+ * Updates an existing customer's data, enforcing RBAC.
+ * @param {string} customerId - ID of customer to update
+ * @param {Object} customerData - New customer data fields
+ * @param {Object} user - Authenticated user context
+ */
+export async function updateCustomer(customerId, customerData, user) {
   validateCustomerData(customerData);
-  const customer = await Customer.findByIdAndUpdate(
-    customerId,
+  const customer = await Customer.findOneAndUpdate(
+    { _id: customerId, ...getAuthFilter(user) },
     customerData,
     {
       returnDocument: "after",
@@ -68,8 +134,14 @@ export async function updateCustomer(customerId, customerData) {
   return customer;
 }
 
-export async function deleteSecondaryAddress(customerId, addressId) {
-  const customer = await Customer.findById(customerId);
+/**
+ * Deletes a secondary address from a customer.
+ * @param {string} customerId - Customer ID
+ * @param {string} addressId - Address subdocument ID
+ * @param {Object} user - Authenticated user context
+ */
+export async function deleteSecondaryAddress(customerId, addressId, user) {
+  const customer = await Customer.findOne({ _id: customerId, ...getAuthFilter(user) });
   if (!customer) {
     throw new Error("Customer not found");
   }
@@ -87,11 +159,18 @@ export async function deleteSecondaryAddress(customerId, addressId) {
   await customer.save();
   return customer;
 }
+/**
+ * Deletes a secondary communication record.
+ * @param {string} customerId - Customer ID
+ * @param {string} communicationId - Communication subdocument ID
+ * @param {Object} user - Authenticated user context
+ */
 export async function deleteSecondaryCommunication(
   customerId,
-  communicationId
+  communicationId,
+  user
 ) {
-  const customer = await Customer.findById(customerId);
+  const customer = await Customer.findOne({ _id: customerId, ...getAuthFilter(user) });
 
   if (!customer) {
     throw new Error("Customer not found");
@@ -112,8 +191,13 @@ export async function deleteSecondaryCommunication(
   return customer;
 }
 
-export async function deleteCustomer(customerId) {
-  const customer = await Customer.findByIdAndDelete(customerId);
+/**
+ * Permanently deletes a customer, enforcing RBAC.
+ * @param {string} customerId - Customer ID
+ * @param {Object} user - Authenticated user context
+ */
+export async function deleteCustomer(customerId, user) {
+  const customer = await Customer.findOneAndDelete({ _id: customerId, ...getAuthFilter(user) });
 
   return customer;
 }
