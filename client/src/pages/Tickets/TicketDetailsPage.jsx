@@ -182,7 +182,7 @@ export default function TicketDetailsPage() {
             </div>
 
             {/* Add Comment Form */}
-            {ticket.status !== "closed" && (
+            {ticket.status !== "closed" && (user.role !== "employee" || ticket.assignedTo?._id === (user.id || user._id) || user.role === "admin") ? (
               <form onSubmit={handleAddComment} className="border-t border-gray-100 pt-6 mt-6">
                 <textarea
                   value={newComment}
@@ -213,6 +213,10 @@ export default function TicketDetailsPage() {
                   </button>
                 </div>
               </form>
+            ) : ticket.status !== "closed" && user.role === "employee" && (
+              <div className="border-t border-gray-100 pt-6 mt-6 text-center">
+                <p className="text-sm text-gray-500 italic">You must be assigned to this ticket to add comments.</p>
+              </div>
             )}
           </div>
         </div>
@@ -225,7 +229,7 @@ export default function TicketDetailsPage() {
             <div className="space-y-4">
               <div>
                 <p className="text-xs text-gray-500 mb-1">Status</p>
-                {isStaff ? (
+                {isStaff && (user.role === "admin" || ticket.assignedTo?._id === (user.id || user._id)) ? (
                   <select
                     value={ticket.status}
                     onChange={handleStatusChange}
