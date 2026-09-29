@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { getTickets } from "../../services/ticketAPI";
+import { getEmployees } from "../../services/userAPI";
 
 /**
  * TicketListPage — Shared view for listing support tickets.
@@ -14,6 +15,8 @@ export default function TicketListPage() {
   const [tickets, setTickets] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [employees, setEmployees] = useState([]);
+  const [assignedFilter, setAssignedFilter] = useState("all");
 
   const isStaff = user.role === "admin" || user.role === "employee";
   const basePath = user.role === "customer" ? "/customer" : `/${user.role}`;
@@ -22,7 +25,11 @@ export default function TicketListPage() {
     async function fetchTickets() {
       try {
         setIsLoading(true);
-        const data = await getTickets();
+        const params = {};
+        if (assignedFilter !== "all") {
+          params.assignedTo = assignedFilter;
+        }
+        const data = await getTickets(params);
         setTickets(data.tickets || []);
       } catch (err) {
         setError(err.message || "Failed to load tickets");
@@ -31,7 +38,13 @@ export default function TicketListPage() {
       }
     }
     fetchTickets();
-  }, []);
+  }, [assignedFilter]);
+
+  useEffect(() => {
+    if (isStaff) {
+      getEmployees().then(res => setEmployees(res.data || [])).catch(err => console.error(err));
+    }
+  }, [isStaff]);
 
   function getStatusColor(status) {
     switch (status) {
@@ -74,14 +87,34 @@ export default function TicketListPage() {
           </p>
         </div>
 
-        {user.role === "customer" && (
-          <Link
-            to={`${basePath}/support/new`}
-            className="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-sm hover:bg-blue-700 transition"
-          >
-            + New Support Ticket
-          </Link>
-        )}
+        <div className="flex items-center gap-3">
+          {isStaff && (
+            <select
+              value={assignedFilter}
+              onChange={(e) => setAssignedFilter(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
+            >
+              <option value="all">All Tickets</option>
+              <option value={user.id || user._id}>Only Me</option>
+              <option value="unassigned">Others</option>
+              {/* <option disabled>──────────</option> */}
+              {employees.map(emp => (
+                <option key={emp._id} value={emp._id}>
+                  {emp.name} {emp.ticketCount !== undefined ? `(${emp.ticketCount})` : ''}
+                </option>
+              ))}
+            </select>
+          )}
+
+          {user.role === "customer" && (
+            <Link
+              to={`${basePath}/support/new`}
+              className="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-sm hover:bg-blue-700 transition"
+            >
+              + New Support Ticket
+            </Link>
+          )}
+        </div>
       </div>
 
       {error && (

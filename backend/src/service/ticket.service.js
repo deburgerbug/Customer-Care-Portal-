@@ -8,13 +8,7 @@ import Customer from "../modals/customer.schema.js";
  * - Customer: Sees only their own tickets.
  */
 async function getTicketAuthFilter(user) {
-  if (user.role === "admin") return {};
-  if (user.role === "employee") {
-    // Find all customers assigned to this employee
-    const assignedCustomers = await Customer.find({ assignedTo: user.id }).select("_id");
-    const customerIds = assignedCustomers.map(c => c._id);
-    return { customerId: { $in: customerIds } };
-  }
+  if (user.role === "admin" || user.role === "employee") return {};
   return { customerId: user.customerId };
 }
 
@@ -42,6 +36,15 @@ export async function getTickets(queryOptions = {}, user) {
   // Status filter
   if (queryOptions.status) {
     filter.status = queryOptions.status;
+  }
+
+  // AssignedTo filter (can be an employee ID or "unassigned")
+  if (queryOptions.assignedTo) {
+    if (queryOptions.assignedTo === "unassigned") {
+      filter.assignedTo = null;
+    } else {
+      filter.assignedTo = queryOptions.assignedTo;
+    }
   }
 
   const [tickets, totalCount] = await Promise.all([
@@ -105,11 +108,16 @@ export async function getTicketById(ticketId, user) {
 
 export async function updateTicketStatus(ticketId, status, user) {
   const filter = await getTicketAuthFilter(user);
-  const ticket = await Ticket.findOneAndUpdate(
-    { _id: ticketId, ...filter },
-    { status },
-    { new: true }
-  );
+  const ticket = await Ticket.findOne({ _id: ticketId, ...filter });
+  
+  if (!ticket) throw new Error("Ticket not found");
+  
+  if (user.role === "employee" && ticket.assignedTo?.toString() !== user.id) {
+    throw new Error("You can only update tickets assigned to you.");
+  }
+
+  ticket.status = status;
+  await ticket.save();
   return ticket;
 }
 
@@ -119,6 +127,10 @@ export async function addComment(ticketId, text, isInternal, user) {
   
   if (!ticket) {
     throw new Error("Ticket not found");
+  }
+
+  if (user.role === "employee" && ticket.assignedTo?.toString() !== user.id) {
+    throw new Error("You can only comment on tickets assigned to you.");
   }
 
   // Customers cannot add internal notes

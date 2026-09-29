@@ -1,14 +1,32 @@
 import User from "../modals/user.schema.js";
+import Ticket from "../modals/ticket.schema.js";
 
 export async function getEmployees(req, res, next) {
   try {
     const employees = await User.find({ role: "employee" })
       .select("name email isActive department createdAt")
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
+
+    // Get active ticket counts per employee
+    const ticketCounts = await Ticket.aggregate([
+      { $match: { assignedTo: { $ne: null }, status: { $ne: "closed" } } },
+      { $group: { _id: "$assignedTo", count: { $sum: 1 } } }
+    ]);
+
+    const countMap = {};
+    ticketCounts.forEach(t => {
+      if (t._id) countMap[t._id.toString()] = t.count;
+    });
+
+    const employeesWithCounts = employees.map(emp => ({
+      ...emp,
+      ticketCount: countMap[emp._id.toString()] || 0
+    }));
 
     res.status(200).json({
       success: true,
-      data: employees,
+      data: employeesWithCounts,
     });
   } catch (error) {
     next(error);
