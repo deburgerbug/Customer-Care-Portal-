@@ -38,7 +38,7 @@ function BasicInformation({ customer, onChange, errors = {} }) {
   const age = customer.dob ? calculateAge(customer.dob) : "";
 
   // Reusable Tailwind classes for text inputs and selects
-  const baseInputStyles = "w-full px-3 py-2.5 border rounded-md bg-white text-gray-900 outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/15 transition";
+  const baseInputStyles = "w-full px-3 py-2 border rounded-md bg-white text-gray-900 text-sm outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/15 transition";
   // Error state adds red border + light red background
   const errorInputStyles = "border-red-500 bg-red-50";
   // Normal state has gray border
@@ -46,19 +46,19 @@ function BasicInformation({ customer, onChange, errors = {} }) {
 
   return (
     // Card wrapper — white bordered box with padding and shadow
-    <section className="bg-white border border-gray-200 rounded-xl p-6 mb-6 shadow-sm">
+    <section className="bg-white border border-gray-200 rounded-lg p-5 mb-4 shadow-sm">
 
       {/* Section title — separated by a bottom border */}
-      <div className="mb-5 pb-3 border-b border-gray-200">
-        <h2 className="text-lg font-bold text-gray-900">Customer Basic Information</h2>
+      <div className="mb-4 pb-2 border-b border-gray-200">
+        <h2 className="text-base font-bold text-gray-900">Customer Basic Information</h2>
       </div>
 
       {/* Form grid — auto-fits columns with min 220px width */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-3">
 
         {/* First Name field */}
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="firstName" className="text-sm font-semibold text-gray-700">First Name *</label>
+          <label htmlFor="firstName" className="text-xs font-semibold text-gray-700">First Name *</label>
           <input
             id="firstName"
             name="firstName"
@@ -73,7 +73,7 @@ function BasicInformation({ customer, onChange, errors = {} }) {
 
         {/* Last Name field */}
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="lastName" className="text-sm font-semibold text-gray-700">Last Name *</label>
+          <label htmlFor="lastName" className="text-xs font-semibold text-gray-700">Last Name *</label>
           <input
             id="lastName"
             name="lastName"
@@ -88,7 +88,7 @@ function BasicInformation({ customer, onChange, errors = {} }) {
 
         {/* Gender dropdown */}
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="gender" className="text-sm font-semibold text-gray-700">Gender *</label>
+          <label htmlFor="gender" className="text-xs font-semibold text-gray-700">Gender *</label>
           <select
             id="gender"
             name="gender"
@@ -106,7 +106,7 @@ function BasicInformation({ customer, onChange, errors = {} }) {
 
         {/* Date of Birth — max is today's date to prevent future dates */}
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="dob" className="text-sm font-semibold text-gray-700">Date of Birth *</label>
+          <label htmlFor="dob" className="text-xs font-semibold text-gray-700">Date of Birth *</label>
           <input
             id="dob"
             name="dob"
@@ -121,7 +121,7 @@ function BasicInformation({ customer, onChange, errors = {} }) {
 
         {/* Age — read-only, auto-calculated from DOB, not editable by user */}
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="age" className="text-sm font-semibold text-gray-700">Age (Auto-calculated)</label>
+          <label htmlFor="age" className="text-xs font-semibold text-gray-700">Age (Auto-calculated)</label>
           <input
             id="age"
             type="text"
@@ -135,7 +135,7 @@ function BasicInformation({ customer, onChange, errors = {} }) {
         {/* Assigned Employee Dropdown (Admin Only) */}
         {user?.role === "admin" && (
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="assignedTo" className="text-sm font-semibold text-gray-700">Assign to Employee</label>
+            <label htmlFor="assignedTo" className="text-xs font-semibold text-gray-700">Assign to Employee</label>
             <select
               id="assignedTo"
               name="assignedTo"

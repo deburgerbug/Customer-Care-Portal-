@@ -37,7 +37,7 @@ function CommunicationCard({
 
   // Reusable Tailwind classes for inputs (mirrors AddressCard.jsx)
   const baseInput =
-    "w-full px-3 py-2.5 border rounded-md bg-white text-gray-900 outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/15 transition";
+    "w-full px-3 py-2 border rounded-md bg-white text-gray-900 text-sm outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/15 transition";
   const errorBorder = "border-red-500 bg-red-50";
   const normalBorder = "border-gray-200";
 
@@ -51,7 +51,7 @@ function CommunicationCard({
       }`}
     >
       {/* Card header — badge on left, remove button on right (secondary only) */}
-      <div className="flex justify-between items-center mb-4 pb-2 border-b border-dashed border-gray-200">
+      <div className="flex justify-between items-center mb-3 pb-2 border-b border-dashed border-gray-200">
         {/* Primary/Secondary badge */}
         <span
           className={`inline-block text-xs font-bold uppercase tracking-wide px-2.5 py-1 rounded-full ${
@@ -77,12 +77,12 @@ function CommunicationCard({
       </div>
 
       {/* Form fields grid — responsive: 1 col on mobile, 2 cols on tablet, 3 cols on desktop */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-3">
         {/* Country Code dropdown */}
         <div className="flex flex-col gap-1.5">
           <label
             htmlFor={`countryCode-${communication.id}`}
-            className="text-sm font-semibold text-gray-700"
+            className="text-xs font-semibold text-gray-700"
           >
             Country Code *
           </label>
@@ -107,7 +107,7 @@ function CommunicationCard({
         <div className="flex flex-col gap-1.5">
           <label
             htmlFor={`mobile-${communication.id}`}
-            className="text-sm font-semibold text-gray-700"
+            className="text-xs font-semibold text-gray-700"
           >
             Mobile Number *
           </label>
@@ -135,7 +135,7 @@ function CommunicationCard({
         <div className="flex flex-col gap-1.5">
           <label
             htmlFor={`email-${communication.id}`}
-            className="text-sm font-semibold text-gray-700"
+            className="text-xs font-semibold text-gray-700"
           >
             Email Address *
           </label>

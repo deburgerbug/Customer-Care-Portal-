@@ -18,22 +18,22 @@ import AddressCard from "./AddressCard";
 function AddressSection({ addresses, onAdd, onChange, onRemove, onPincodeLookup, errors = {} }) {
   return (
     // Card wrapper — same style as BasicInformation section
-    <section className="bg-white border border-gray-200 rounded-xl p-6 mb-6 shadow-sm">
+    <section className="bg-white border border-gray-200 rounded-lg p-5 mb-4 shadow-sm">
 
       {/* Header row — title on left, "Add" button on right */}
-      <div className="flex justify-between items-center mb-5 pb-3 border-b border-gray-200 gap-4">
+      <div className="flex justify-between items-center mb-4 pb-2 border-b border-gray-200 gap-4">
         <div>
-          <h2 className="text-lg font-bold text-gray-900">Customer Residence Information</h2>
+          <h2 className="text-base font-bold text-gray-900">Customer Residence Information</h2>
           <p className="text-sm text-gray-500 mt-0.5">Manage primary and secondary addresses</p>
         </div>
 
         {/* Button to add a new secondary address card */}
         <button
           type="button"
-          className="px-3 py-1.5 text-sm font-semibold text-blue-600 border border-blue-200 rounded-md bg-transparent hover:bg-blue-50 hover:border-blue-600 transition"
+          className="px-3 py-1 text-xs font-semibold text-blue-600 border border-blue-200 rounded-md bg-transparent hover:bg-blue-50 hover:border-blue-600 transition"
           onClick={onAdd}
         >
-          + Add Secondary Address
+          + Add Secondary
         </button>
       </div>
 

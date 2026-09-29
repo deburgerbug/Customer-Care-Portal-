@@ -346,9 +346,9 @@ function CustomerForm() {
 
   return (
     // Form page container — centered with max-width
-    <div className="max-w-5xl mx-auto px-4 py-8">
+    <div className="max-w-5xl mx-auto px-4 py-6">
       {/* Top Header Bar — title, subtitle, and back button */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
             {isEditMode ? "Edit Customer Profile" : "New Customer Application"}
@@ -403,7 +403,7 @@ function CustomerForm() {
         />
 
         {/* Action bar — Cancel and Submit buttons */}
-        <div className="flex justify-end items-center gap-3 pt-4 border-t border-gray-200 mt-8">
+        <div className="flex justify-end items-center gap-3 pt-4 border-t border-gray-200 mt-4">
           <Link
             to={user?.role === "customer" ? `/customer/profile` : `${basePath}/customers`}
             className="px-5 py-2.5 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition"

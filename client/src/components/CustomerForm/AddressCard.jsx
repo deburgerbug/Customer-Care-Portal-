@@ -26,18 +26,18 @@ function AddressCard({ address, index, onChange, onRemove, onPincodeLookup, erro
   const countryError = errors[`country-${index}`];
 
   // Reusable Tailwind classes for inputs
-  const baseInput = "w-full px-3 py-2.5 border rounded-md bg-white text-gray-900 outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/15 transition";
+  const baseInput = "w-full px-3 py-2 border rounded-md bg-white text-gray-900 text-sm outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/15 transition";
   const errorBorder = "border-red-500 bg-red-50";
   const normalBorder = "border-gray-200";
   // Read-only fields (city, state) — grayed out, not editable
-  const readonlyInput = "w-full px-3 py-2.5 border border-gray-200 rounded-md bg-gray-50 text-gray-500 cursor-not-allowed outline-none";
+  const readonlyInput = "w-full px-3 py-2 border border-gray-200 rounded-md bg-gray-50 text-gray-500 text-sm cursor-not-allowed outline-none";
 
   return (
     // Card container — blue left border for primary, gray for secondary
     <div className={`border rounded-lg p-4 ${isPrimary ? "border-l-4 border-l-blue-600 bg-white" : "border-l-4 border-l-gray-400 bg-gray-50"}`}>
 
       {/* Card header — badge on left, remove button on right (secondary only) */}
-      <div className="flex justify-between items-center mb-4 pb-2 border-b border-dashed border-gray-200">
+      <div className="flex justify-between items-center mb-3 pb-2 border-b border-dashed border-gray-200">
         {/* Primary/Secondary badge */}
         <span className={`inline-block text-xs font-bold uppercase tracking-wide px-2.5 py-1 rounded-full
           ${isPrimary
@@ -62,11 +62,11 @@ function AddressCard({ address, index, onChange, onRemove, onPincodeLookup, erro
       </div>
 
       {/* Form fields grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-3">
 
         {/* Address field — spans full width of the grid */}
         <div className="flex flex-col gap-1.5 sm:col-span-2 lg:col-span-3">
-          <label htmlFor={`address-${address.id}`} className="text-sm font-semibold text-gray-700">Address *</label>
+          <label htmlFor={`address-${address.id}`} className="text-xs font-semibold text-gray-700">Address *</label>
           <input
             id={`address-${address.id}`}
             name="address"
@@ -81,7 +81,7 @@ function AddressCard({ address, index, onChange, onRemove, onPincodeLookup, erro
 
         {/* Pincode field — triggers auto-fill on blur (onPincodeLookup) */}
         <div className="flex flex-col gap-1.5">
-          <label htmlFor={`pincode-${address.id}`} className="text-sm font-semibold text-gray-700">
+          <label htmlFor={`pincode-${address.id}`} className="text-xs font-semibold text-gray-700">
             Pincode * <small className="font-normal text-gray-500">(Auto-fetches City/State)</small>
           </label>
           <input
@@ -100,7 +100,7 @@ function AddressCard({ address, index, onChange, onRemove, onPincodeLookup, erro
 
         {/* City field — read-only, auto-filled by pincode lookup */}
         <div className="flex flex-col gap-1.5">
-          <label htmlFor={`city-${address.id}`} className="text-sm font-semibold text-gray-700">City / District *</label>
+          <label htmlFor={`city-${address.id}`} className="text-xs font-semibold text-gray-700">City / District *</label>
           <input
             id={`city-${address.id}`}
             name="city"
@@ -115,7 +115,7 @@ function AddressCard({ address, index, onChange, onRemove, onPincodeLookup, erro
 
         {/* State field — read-only, auto-filled by pincode lookup */}
         <div className="flex flex-col gap-1.5">
-          <label htmlFor={`state-${address.id}`} className="text-sm font-semibold text-gray-700">State *</label>
+          <label htmlFor={`state-${address.id}`} className="text-xs font-semibold text-gray-700">State *</label>
           <input
             id={`state-${address.id}`}
             name="state"
@@ -130,7 +130,7 @@ function AddressCard({ address, index, onChange, onRemove, onPincodeLookup, erro
 
         {/* Country field — editable text input */}
         <div className="flex flex-col gap-1.5">
-          <label htmlFor={`country-${address.id}`} className="text-sm font-semibold text-gray-700">Country *</label>
+          <label htmlFor={`country-${address.id}`} className="text-xs font-semibold text-gray-700">Country *</label>
           <input
             id={`country-${address.id}`}
             name="country"
