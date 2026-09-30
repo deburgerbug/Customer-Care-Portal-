@@ -9,7 +9,8 @@ import {
   deleteCustomer,
   getMetrics
 } from "../controller/customer.controller.js";
-import { authenticate, authorize } from "../middleware/auth.middleware.js";
+import { authenticate, requirePermission } from "../middleware/auth.middleware.js";
+import { PERMISSIONS } from "../config/permissions.js";
 
 const router = express.Router();
 
@@ -17,23 +18,23 @@ const router = express.Router();
 router.use(authenticate);
 
 // Metrics
-router.get('/metrics', authorize("employee"), getMetrics);
+router.get('/metrics', requirePermission(PERMISSIONS.EMPLOYEE_READ), getMetrics);
 
-// List - Only Admin and Employee
-router.get('/', authorize("admin", "employee"), getCustomers);
+// List
+router.get('/', requirePermission(PERMISSIONS.CUSTOMER_READ), getCustomers);
 
-// Create - Admin, Employee, and Customer
-router.post('/', authorize("admin", "employee", "customer"), createCustomer);
+// Create
+router.post('/', requirePermission(PERMISSIONS.CUSTOMER_CREATE), createCustomer);
 
-// Read - Admin, Employee, and the Customer themselves
-router.get('/:id', authorize("admin", "employee", "customer"), getCustomerById);
+// Read
+router.get('/:id', requirePermission(PERMISSIONS.CUSTOMER_READ), getCustomerById);
 
-// Update - Admin, Employee only
-router.put('/:id', authorize("admin", "employee"), updateCustomer);
-router.delete("/:customerId/communications/:communicationId", authorize("admin", "employee", "customer"), deleteSecondaryCommunication);
-router.delete('/:customerId/addresses/:addressId', authorize("admin", "employee", "customer"), deleteSecondaryAddress);
+// Update
+router.put('/:id', requirePermission(PERMISSIONS.CUSTOMER_UPDATE), updateCustomer);
+router.delete("/:customerId/communications/:communicationId", requirePermission(PERMISSIONS.CUSTOMER_UPDATE), deleteSecondaryCommunication);
+router.delete('/:customerId/addresses/:addressId', requirePermission(PERMISSIONS.CUSTOMER_UPDATE), deleteSecondaryAddress);
 
-// Delete Customer - Admin only
-router.delete('/:id', authorize("admin"), deleteCustomer);
+// Delete Customer
+router.delete('/:id', requirePermission(PERMISSIONS.CUSTOMER_DELETE), deleteCustomer);
 
 export default router;

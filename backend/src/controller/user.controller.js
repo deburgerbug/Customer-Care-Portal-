@@ -4,7 +4,7 @@ import Ticket from "../modals/ticket.schema.js";
 export async function getEmployees(req, res, next) {
   try {
     const employees = await User.find({ role: "employee" })
-      .select("name email isActive department createdAt")
+      .select("name email isActive department createdAt customPermissions")
       .sort({ createdAt: -1 })
       .lean();
 
@@ -63,11 +63,16 @@ export async function createEmployee(req, res, next) {
 export async function updateEmployee(req, res, next) {
   try {
     const { id } = req.params;
-    const { name, email, department, isActive } = req.body;
+    const { name, email, department, isActive, customPermissions } = req.body;
+
+    const updateData = { name, email, department, isActive };
+    if (customPermissions !== undefined) {
+      updateData.customPermissions = customPermissions;
+    }
 
     const employee = await User.findOneAndUpdate(
       { _id: id, role: "employee" },
-      { name, email, department, isActive },
+      updateData,
       { new: true, runValidators: true }
     );
 

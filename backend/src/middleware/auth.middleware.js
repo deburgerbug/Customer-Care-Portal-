@@ -1,5 +1,6 @@
 import { verifyAccessToken } from "../utils/token.utils.js";
 import User from "../modals/user.schema.js";
+import { PERMISSIONS } from "../config/permissions.js";
 
 // Authenticate user via Bearer accessToken
 export async function authenticate(req, res, next) {
@@ -39,17 +40,55 @@ export async function authenticate(req, res, next) {
   }
 }
 
-// Role-Based Access Control (RBAC) guard
-export function authorize(...allowedRoles) {
+
+// Map base permissions to hardcoded roles
+const ROLE_PERMISSIONS = {
+  super_admin: ["*"],
+  admin: [
+    PERMISSIONS.EMPLOYEE_READ, PERMISSIONS.EMPLOYEE_CREATE, PERMISSIONS.EMPLOYEE_UPDATE, PERMISSIONS.EMPLOYEE_DEACTIVATE,
+    PERMISSIONS.CUSTOMER_READ, PERMISSIONS.CUSTOMER_CREATE, PERMISSIONS.CUSTOMER_UPDATE, PERMISSIONS.CUSTOMER_DELETE,
+    PERMISSIONS.TICKET_READ, PERMISSIONS.TICKET_CREATE, PERMISSIONS.TICKET_ASSIGN, PERMISSIONS.TICKET_UPDATE,
+    PERMISSIONS.TICKET_COMMENT, PERMISSIONS.TICKET_INTERNAL_COMMENT,
+    PERMISSIONS.DASHBOARD_READ
+  ],
+  employee: [
+    PERMISSIONS.CUSTOMER_READ,
+    PERMISSIONS.EMPLOYEE_READ,
+    PERMISSIONS.TICKET_READ, PERMISSIONS.TICKET_UPDATE, PERMISSIONS.TICKET_COMMENT, PERMISSIONS.TICKET_INTERNAL_COMMENT,
+    PERMISSIONS.DASHBOARD_READ
+  ],
+  customer: [
+    PERMISSIONS.CUSTOMER_READ, PERMISSIONS.CUSTOMER_UPDATE,
+    PERMISSIONS.TICKET_READ, PERMISSIONS.TICKET_CREATE, PERMISSIONS.TICKET_COMMENT
+  ]
+};
+
+// Helper: Calculate total permissions
+export function getEffectivePermissions(user) {
+  if (!user) return [];
+  const basePerms = ROLE_PERMISSIONS[user.role] || [];
+  const customPerms = user.customPermissions || [];
+  // Return unique combination of both
+  return [...new Set([...basePerms, ...customPerms])];
+}
+
+// Permission-Based Access Control (PBAC) guard
+export function requirePermission(requiredPermission) {
   return (req, res, next) => {
-    if (!req.user || !allowedRoles.includes(req.user.role)) {
-      return res.status(403).json({
-        success: false,
-        message: `Forbidden: Access requires one of the following roles: [${allowedRoles.join(
-          ", "
-        )}]`,
-      });
+    if (!req.user) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
     }
-    next();
+
+    const effectivePermissions = getEffectivePermissions(req.user);
+
+    // Check for wildcard bypass (Super Admin) or specific permission match
+    if (effectivePermissions.includes("*") || effectivePermissions.includes(requiredPermission)) {
+      return next();
+    }
+
+    return res.status(403).json({
+      success: false,
+      message: `Forbidden: Missing required permission [${requiredPermission}]`,
+    });
   };
 }

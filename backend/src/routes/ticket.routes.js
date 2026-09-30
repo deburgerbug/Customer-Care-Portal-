@@ -8,7 +8,8 @@ import {
   getMetrics,
   assignTicket,
 } from "../controller/ticket.controller.js";
-import { authenticate, authorize } from "../middleware/auth.middleware.js";
+import { authenticate, requirePermission } from "../middleware/auth.middleware.js";
+import { PERMISSIONS } from "../config/permissions.js";
 
 const router = express.Router();
 
@@ -18,17 +19,17 @@ router.use(authenticate);
 router.get("/metrics", getMetrics);
 
 // Core CRUD
-router.post("/", authorize("customer", "admin", "employee"), createTicket);
-router.get("/", authorize("customer", "admin", "employee"), getTickets);
-router.get("/:id", authorize("customer", "admin", "employee"), getTicketById);
+router.post("/", requirePermission(PERMISSIONS.TICKET_CREATE), createTicket);
+router.get("/", requirePermission(PERMISSIONS.TICKET_READ), getTickets);
+router.get("/:id", requirePermission(PERMISSIONS.TICKET_READ), getTicketById);
 
 // Update Status (Admin and Employee only)
-router.patch("/:id/status", authorize("admin", "employee"), updateTicketStatus);
+router.patch("/:id/status", requirePermission(PERMISSIONS.TICKET_UPDATE), updateTicketStatus);
 
 // Assign Ticket (Admin only)
-router.patch("/:id/assign", authorize("admin"), assignTicket);
+router.patch("/:id/assign", requirePermission(PERMISSIONS.TICKET_ASSIGN), assignTicket);
 
 // Comments
-router.post("/:id/comments", authorize("customer", "admin", "employee"), addComment);
+router.post("/:id/comments", requirePermission(PERMISSIONS.TICKET_COMMENT), addComment);
 
 export default router;

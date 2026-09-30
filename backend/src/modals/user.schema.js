@@ -43,8 +43,8 @@ const userSchema = new mongoose.Schema(
     role: {
       type: String,
       enum: {
-        values: ["admin", "employee", "customer"],
-        message: "Role must be either admin, employee, or customer",
+        values: ["super_admin", "admin", "employee", "customer"],
+        message: "Role must be super_admin, admin, employee, or customer",
       },
       default: "customer",
       index: true,
@@ -60,6 +60,11 @@ const userSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Customer",
       default: null,
+    },
+
+    customPermissions: {
+      type: [String],
+      default: [],
     },
 
     isActive: {
@@ -157,6 +162,7 @@ userSchema.methods.toPublicJSON = function () {
     role: this.role,
     department: this.department,
     customerId: this.customerId,
+    customPermissions: this.customPermissions,
     isActive: this.isActive,
     isEmailVerified: this.isEmailVerified,
     createdAt: this.createdAt,
