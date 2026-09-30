@@ -162,9 +162,6 @@ export async function getOpenTicketCount() {
 }
 
 export async function assignTicket(ticketId, employeeId, user) {
-  if (user.role !== "admin") {
-    throw new Error("Only admins can assign tickets");
-  }
 
   const ticket = await Ticket.findByIdAndUpdate(
     ticketId,
