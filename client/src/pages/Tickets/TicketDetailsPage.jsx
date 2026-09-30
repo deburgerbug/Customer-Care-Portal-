@@ -3,6 +3,8 @@ import { useParams, Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { getTicketById, addComment, updateTicketStatus, assignTicket } from "../../services/ticketAPI";
 import { getEmployees } from "../../services/userAPI";
+import HasPermission from "../../components/HasPermission.jsx";
+import { PERMISSIONS } from "../../config/permissions.js";
 
 /**
  * TicketDetailsPage — Shared view for viewing a specific ticket and its communication thread.
@@ -193,7 +195,7 @@ export default function TicketDetailsPage() {
                   required
                 ></textarea>
                 <div className="flex items-center justify-between">
-                  {isStaff ? (
+                  <HasPermission required={PERMISSIONS.TICKET_INTERNAL_COMMENT}>
                     <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
                       <input
                         type="checkbox"
@@ -203,7 +205,7 @@ export default function TicketDetailsPage() {
                       />
                       Internal Note (Hidden from customer)
                     </label>
-                  ) : <div></div>}
+                  </HasPermission>
                   <button
                     type="submit"
                     disabled={isSubmitting || !newComment.trim()}
@@ -229,17 +231,20 @@ export default function TicketDetailsPage() {
             <div className="space-y-4">
               <div>
                 <p className="text-xs text-gray-500 mb-1">Status</p>
-                {isStaff && (user.role === "admin" || ticket.assignedTo?._id === (user.id || user._id)) ? (
-                  <select
-                    value={ticket.status}
-                    onChange={handleStatusChange}
-                    className="w-full text-sm font-semibold p-2 border border-gray-300 rounded-md bg-white outline-none focus:border-blue-500"
-                  >
-                    <option value="open">Open</option>
-                    <option value="in-progress">In Progress</option>
-                    <option value="resolved">Resolved</option>
-                    <option value="closed">Closed</option>
-                  </select>
+                {/* Check if user has permission AND meets the scope rule (is admin or is assigned) */}
+                {(user.permissions?.includes("*") || ticket.assignedTo?._id === (user.id || user._id)) ? (
+                  <HasPermission required={PERMISSIONS.TICKET_UPDATE}>
+                    <select
+                      value={ticket.status}
+                      onChange={handleStatusChange}
+                      className="w-full text-sm font-semibold p-2 border border-gray-300 rounded-md bg-white outline-none focus:border-blue-500"
+                    >
+                      <option value="open">Open</option>
+                      <option value="in-progress">In Progress</option>
+                      <option value="resolved">Resolved</option>
+                      <option value="closed">Closed</option>
+                    </select>
+                  </HasPermission>
                 ) : (
                   <p className="text-sm font-semibold capitalize text-gray-900">{ticket.status}</p>
                 )}
@@ -259,7 +264,7 @@ export default function TicketDetailsPage() {
                 </div>
               )}
 
-              {user.role === "admin" ? (
+              <HasPermission required={PERMISSIONS.TICKET_ASSIGN}>
                 <div>
                   <p className="text-xs text-gray-500 mb-1">Assigned Agent</p>
                   <select
@@ -273,12 +278,14 @@ export default function TicketDetailsPage() {
                     ))}
                   </select>
                 </div>
-              ) : ticket.assignedTo ? (
+              </HasPermission>
+
+              {!user.permissions?.includes("*") && !user.permissions?.includes(PERMISSIONS.TICKET_ASSIGN) && ticket.assignedTo && (
                 <div>
                   <p className="text-xs text-gray-500 mb-1">Assigned Agent</p>
                   <p className="text-sm font-semibold text-gray-900">{ticket.assignedTo.name}</p>
                 </div>
-              ) : null}
+              )}
             </div>
           </div>
         </div>

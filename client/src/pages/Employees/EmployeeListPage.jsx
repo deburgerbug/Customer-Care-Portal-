@@ -1,16 +1,18 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { getEmployees, deleteEmployee } from "../../services/userAPI";
+import { Link, useNavigate } from "react-router-dom";
+import { getEmployees, deleteEmployee, updateEmployee } from "../../services/userAPI.js";
+import HasPermission from "../../components/HasPermission.jsx";
+import { PERMISSIONS } from "../../config/permissions.js";
 
-/**
- * EmployeeListPage — Admin view for managing employees
- * Route: /admin/employees
- */
+// Removed PERMISSION_MODULES as granular perms are scoped out for now
+
 function EmployeeListPage() {
+  const navigate = useNavigate();
   const [employees, setEmployees] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [deactivatingId, setDeactivatingId] = useState(null);
+
 
   useEffect(() => {
     loadEmployees();
@@ -34,7 +36,7 @@ function EmployeeListPage() {
     try {
       setDeactivatingId(id);
       await deleteEmployee(id);
-      await loadEmployees(); // refresh list
+      await loadEmployees();
     } catch (err) {
       alert(`Error deactivating employee: ${err.message}`);
     } finally {
@@ -43,19 +45,21 @@ function EmployeeListPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto py-8">
+    <div className="max-w-6xl mx-auto py-8 px-4 relative">
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Employee Directory</h1>
-          <p className="text-sm text-gray-500 mt-1">Manage staff accounts and their access</p>
+          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Manage Employees</h1>
+          <p className="text-sm text-gray-500 mt-1">Manage staff accounts and their module access</p>
         </div>
-        <Link
-          to="/admin/employees/new"
-          className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-sm transition inline-flex items-center gap-2"
-        >
-          <span>+</span> Create Employee
-        </Link>
+        <HasPermission required={PERMISSIONS.EMPLOYEE_CREATE}>
+          <Link
+            to="/admin/employees/new"
+            className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg shadow-sm transition inline-flex items-center gap-2"
+          >
+            <span>+</span> Create Employee
+          </Link>
+        </HasPermission>
       </div>
 
       {error && (
@@ -100,15 +104,27 @@ function EmployeeListPage() {
                       </span>
                     </td>
                     <td className="py-3.5 px-6 text-right">
-                      {emp.isActive && (
+                      <div className="flex justify-end gap-2">
+                        {/* View Action - navigate to ticket list filtered by this employee */}
                         <button
-                          onClick={() => handleDeactivate(emp._id)}
-                          disabled={deactivatingId === emp._id}
-                          className="px-3 py-1.5 text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-md hover:bg-red-600 hover:text-white transition"
+                          onClick={() => navigate(`/admin/support?assignedTo=${emp._id}`)}
+                          className="px-3 py-1.5 text-xs font-semibold text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-600 hover:text-white transition"
                         >
-                          {deactivatingId === emp._id ? "Processing..." : "Deactivate"}
+                          View Queue
                         </button>
-                      )}
+
+                        <HasPermission required={PERMISSIONS.EMPLOYEE_DEACTIVATE}>
+                          {emp.isActive && (
+                            <button
+                              onClick={() => handleDeactivate(emp._id)}
+                              disabled={deactivatingId === emp._id}
+                              className="px-3 py-1.5 text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-md hover:bg-red-600 hover:text-white transition"
+                            >
+                              {deactivatingId === emp._id ? "..." : "Deactivate"}
+                            </button>
+                          )}
+                        </HasPermission>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -117,6 +133,7 @@ function EmployeeListPage() {
           </div>
         )}
       </div>
+
     </div>
   );
 }

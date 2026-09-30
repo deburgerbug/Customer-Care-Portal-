@@ -1,5 +1,27 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { logoutUser } from "../services/authAPI";
+import { PERMISSIONS } from "../config/permissions.js";
+
+const ROLE_PERMISSIONS = {
+  super_admin: ["*"],
+  admin: [
+    PERMISSIONS.EMPLOYEE_READ, PERMISSIONS.EMPLOYEE_CREATE, PERMISSIONS.EMPLOYEE_UPDATE, PERMISSIONS.EMPLOYEE_DEACTIVATE,
+    PERMISSIONS.CUSTOMER_READ, PERMISSIONS.CUSTOMER_CREATE, PERMISSIONS.CUSTOMER_UPDATE, PERMISSIONS.CUSTOMER_DELETE,
+    PERMISSIONS.TICKET_READ, PERMISSIONS.TICKET_CREATE, PERMISSIONS.TICKET_ASSIGN, PERMISSIONS.TICKET_UPDATE,
+    PERMISSIONS.TICKET_COMMENT, PERMISSIONS.TICKET_INTERNAL_COMMENT,
+    PERMISSIONS.DASHBOARD_READ
+  ],
+  employee: [
+    PERMISSIONS.CUSTOMER_READ,
+    PERMISSIONS.EMPLOYEE_READ,
+    PERMISSIONS.TICKET_READ, PERMISSIONS.TICKET_UPDATE, PERMISSIONS.TICKET_COMMENT, PERMISSIONS.TICKET_INTERNAL_COMMENT,
+    PERMISSIONS.DASHBOARD_READ
+  ],
+  customer: [
+    PERMISSIONS.CUSTOMER_READ, PERMISSIONS.CUSTOMER_UPDATE,
+    PERMISSIONS.TICKET_READ, PERMISSIONS.TICKET_CREATE, PERMISSIONS.TICKET_COMMENT
+  ]
+};
 
 const AuthContext = createContext(null);
 
@@ -42,8 +64,17 @@ export function AuthProvider({ children }) {
     setUser(null);
   }
 
+  const hasPermission = (requiredPermission) => {
+    if (!user) return false;
+    const basePerms = ROLE_PERMISSIONS[user.role] || [];
+    const customPerms = user.customPermissions || [];
+    const effectivePermissions = [...new Set([...basePerms, ...customPerms])];
+    
+    return effectivePermissions.includes("*") || effectivePermissions.includes(requiredPermission);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, isLoading, saveAuth, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, saveAuth, logout, hasPermission }}>
       {children}
     </AuthContext.Provider>
   );

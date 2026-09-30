@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { getCustomers } from "../../services/customerAPI";
+import { getTickets } from "../../services/ticketAPI.js";
 
 /**
  * EmployeeDashboard — Overview metrics for the Employee role
@@ -10,7 +10,7 @@ import { getCustomers } from "../../services/customerAPI";
 function EmployeeDashboard() {
   const { user } = useAuth();
   const [metrics, setMetrics] = useState({
-    assignedCustomers: 0,
+    assignedTickets: 0,
   });
   const [isLoading, setIsLoading] = useState(true);
 
@@ -18,10 +18,10 @@ function EmployeeDashboard() {
     async function fetchMetrics() {
       try {
         setIsLoading(true);
-        // Limit 1 because we only care about totalCount of assigned customers
-        const response = await getCustomers({ limit: 1 });
+        // Fetch tickets assigned to this employee
+        const response = await getTickets({ assignedTo: user.id || user._id, limit: 1 });
         setMetrics({
-          assignedCustomers: response.pagination?.totalCount || 0,
+          assignedTickets: response.pagination?.totalCount || 0,
         });
       } catch (err) {
         console.error("Failed to load metrics", err);
@@ -36,8 +36,8 @@ function EmployeeDashboard() {
   return (
     <div className="max-w-6xl mx-auto py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Agent Dashboard</h1>
-        <p className="text-sm text-gray-500 mt-1">Welcome back, {user?.name}. Here is your operational overview.</p>
+        <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Dashboard</h1>
+        <p className="text-sm text-gray-500 mt-1">Welcome back, {user?.name}.</p>
       </div>
 
       {isLoading ? (
@@ -47,21 +47,22 @@ function EmployeeDashboard() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
 
-          {/* Metric Card: Assigned Customers */}
-          <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm flex flex-col justify-between">
+          {/* Metric Card: Assigned Tickets */}
+          <div className="w-40 bg-white border border-gray-300 rounded-md p-2 shadow-sm flex flex-col justify-between">
             <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">My Assigned Customers</p>
-              <h3 className="text-4xl font-black text-gray-900">{metrics.assignedCustomers}</h3>
+              <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Assigned Tickets</p>
+              <h3 className="text-2xl font-black text-gray-900 leading-tight">{metrics.assignedTickets}</h3>
             </div>
-            <div className="mt-4 pt-4 border-t border-gray-100">
-              <Link to="/employee/customers" className="text-sm font-semibold text-blue-600 hover:text-blue-800 transition flex items-center gap-1">
-                View my roster &rarr;
+            <div className="mt-2 pt-1 border-t border-gray-100">
+              <Link to={`/employee/support?assignedTo=${user.id || user._id}`} className="text-xs font-semibold text-blue-600 hover:text-blue-800 transition flex items-center gap-1">
+                View &rarr;
               </Link>
             </div>
           </div>
 
+
           {/* Call to Action Card */}
-          <div className="bg-gradient-to-br from-blue-900 to-blue-700 rounded-xl p-6 shadow-md flex flex-col justify-between text-white">
+          {/* <div className="bg-gradient-to-br from-blue-900 to-blue-700 rounded-xl p-6 shadow-md flex flex-col justify-between text-white">
             <div>
               <p className="text-xs font-semibold text-blue-200 uppercase tracking-wider mb-1">Daily Operations</p>
               <h3 className="text-2xl font-bold mt-1">Ready for Outreach?</h3>
@@ -72,13 +73,13 @@ function EmployeeDashboard() {
                 Start Working
               </Link>
             </div>
-          </div>
+          </div> */}
 
         </div>
       )}
 
       {/* Recent Activity / Notices Placeholder */}
-      <h2 className="text-lg font-bold text-gray-900 mb-4">System Notices</h2>
+      {/* <h2 className="text-lg font-bold text-gray-900 mb-4">System Notices</h2>
       <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
         <div className="flex items-start gap-4">
           <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-lg shrink-0">
@@ -90,7 +91,7 @@ function EmployeeDashboard() {
             <span className="text-xs text-gray-400 mt-2 block">Today at 9:00 AM</span>
           </div>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }

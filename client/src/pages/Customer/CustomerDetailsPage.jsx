@@ -4,6 +4,8 @@ import { useAuth } from "../../context/AuthContext.jsx";
 import { getCustomerById, deleteCustomer } from "../../services/customerAPI.js";
 import { calculateAge } from "../../utils/calculateAge.js";
 import DeleteConfirmModal from "../../components/DeleteConfirmModal.jsx";
+import HasPermission from "../../components/HasPermission.jsx";
+import { PERMISSIONS } from "../../config/permissions.js";
 import { getCountryByDialCode } from "../../constants/countries.js";
 
 /**
@@ -151,15 +153,16 @@ function CustomerDetailsPage() {
 
         {/* Action Cluster: Edit and Delete buttons */}
         <div className="flex items-center gap-3">
-          {user?.role !== "customer" && (
+          <HasPermission required={PERMISSIONS.CUSTOMER_UPDATE}>
             <Link
               to={`/${user?.role}/customers/${id}/edit`}
               className="px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 shadow-sm transition inline-flex items-center gap-1.5"
             >
               &#9998; Edit Form
             </Link>
-          )}
-          {user?.role === "admin" && (
+          </HasPermission>
+          
+          <HasPermission required={PERMISSIONS.CUSTOMER_DELETE}>
             <button
               type="button"
               className="px-4 py-2 text-sm font-semibold text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-600 hover:text-white transition"
@@ -168,7 +171,7 @@ function CustomerDetailsPage() {
             >
               Delete Customer
             </button>
-          )}
+          </HasPermission>
         </div>
       </div>
 

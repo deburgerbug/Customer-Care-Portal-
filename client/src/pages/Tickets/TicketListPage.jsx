@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { getTickets } from "../../services/ticketAPI";
 import { getEmployees } from "../../services/userAPI";
@@ -8,7 +8,6 @@ import { getEmployees } from "../../services/userAPI";
  * TicketListPage — Shared view for listing support tickets.
  * Routes: /customer/support, /employee/support, /admin/support
  * Displays a table of tickets. The data returned adapts to the user's role 
- * (e.g., customers see only their own tickets, employees see tickets for their assigned customers).
  */
 export default function TicketListPage() {
   const { user } = useAuth();
@@ -16,7 +15,10 @@ export default function TicketListPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [employees, setEmployees] = useState([]);
-  const [assignedFilter, setAssignedFilter] = useState("all");
+  const [searchParams] = useSearchParams();
+  const [assignedFilter, setAssignedFilter] = useState(searchParams.get("assignedTo") || "all");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   const isStaff = user.role === "admin" || user.role === "employee";
   const basePath = user.role === "customer" ? "/customer" : `/${user.role}`;
@@ -25,12 +27,15 @@ export default function TicketListPage() {
     async function fetchTickets() {
       try {
         setIsLoading(true);
-        const params = {};
+        const params = { page, limit: 10 };
         if (assignedFilter !== "all") {
           params.assignedTo = assignedFilter;
         }
         const data = await getTickets(params);
         setTickets(data.tickets || []);
+        if (data.pagination) {
+          setTotalPages(data.pagination.totalPages);
+        }
       } catch (err) {
         setError(err.message || "Failed to load tickets");
       } finally {
@@ -38,6 +43,11 @@ export default function TicketListPage() {
       }
     }
     fetchTickets();
+  }, [assignedFilter, page]);
+
+  // Reset page to 1 when filter changes
+  useEffect(() => {
+    setPage(1);
   }, [assignedFilter]);
 
   useEffect(() => {
@@ -95,7 +105,9 @@ export default function TicketListPage() {
               className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
             >
               <option value="all">All Tickets</option>
-              <option value={user.id || user._id}>Only Me</option>
+              {user.role === "employee" && (
+                <option value={user.id || user._id}>Me</option>
+              )}
               <option value="unassigned">Others</option>
               {/* <option disabled>──────────</option> */}
               {employees.map(emp => (
@@ -191,6 +203,29 @@ export default function TicketListPage() {
                 ))}
               </tbody>
             </table>
+            
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 bg-gray-50">
+                <button
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                >
+                  Previous
+                </button>
+                <span className="text-sm text-gray-600">
+                  Page <span className="font-bold">{page}</span> of <span className="font-bold">{totalPages}</span>
+                </span>
+                <button
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                  className="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                >
+                  Next
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
