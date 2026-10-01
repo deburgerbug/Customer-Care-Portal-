@@ -49,7 +49,7 @@ function AdminDashboard() {
     <div className="max-w-6xl mx-auto py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Admin Dashboard</h1>
-        <p className="text-sm text-gray-500 mt-1">Welcome back, {user?.name}. Here is an overview of the system.</p>
+        <p className="text-sm text-gray-500 mt-1">Welcome back, {user?.name}. </p>
       </div>
 
       {isLoading ? (

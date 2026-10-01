@@ -1,7 +1,6 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { registerUser } from "../../services/authAPI";
-import { useAuth } from "../../context/AuthContext";
 
 /**
  * RegisterPage — New user registration screen
@@ -17,9 +16,6 @@ import { useAuth } from "../../context/AuthContext";
  *  5. On error → shows error message above the form
  */
 function RegisterPage() {
-  const navigate = useNavigate();
-  const { saveAuth } = useAuth();
-
   // Form field states
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");

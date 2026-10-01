@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { getCustomers, deleteCustomer } from "../../services/customerAPI";
 import { useAuth } from "../../context/AuthContext";
@@ -51,12 +51,7 @@ function CustomerListPage() {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  // Reload customer list whenever page, limit, or search query changes
-  useEffect(() => {
-    loadCustomers();
-  }, [page, limit, debouncedSearch]);
-
-  async function loadCustomers() {
+  const loadCustomers = useCallback(async () => {
     try {
       setIsLoading(true);
       setError("");
@@ -75,7 +70,12 @@ function CustomerListPage() {
     } finally {
       setIsLoading(false);
     }
-  }
+  }, [page, limit, debouncedSearch]);
+
+  // Reload customer list whenever page, limit, or search query changes
+  useEffect(() => {
+    loadCustomers();
+  }, [loadCustomers]);
 
   // Deletion confirmed from DeleteConfirmModal
   async function confirmDeleteCustomer() {

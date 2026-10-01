@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { getEmployees, deleteEmployee, updateEmployee } from "../../services/userAPI.js";
+import { getEmployees, deleteEmployee } from "../../services/userAPI.js";
 import HasPermission from "../../components/HasPermission.jsx";
 import { PERMISSIONS } from "../../config/permissions.js";
 

@@ -83,7 +83,7 @@ export async function apiClient(endpoint, options = {}) {
         isRefreshing = false;
         // Notify all waiting requests to retry with the new token
         onRefreshed(refreshData.accessToken);
-      } catch (err) {
+      } catch {
         isRefreshing = false;
         // Notify all waiting requests that refresh failed
         onRefreshed(null);

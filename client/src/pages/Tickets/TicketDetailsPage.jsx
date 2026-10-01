@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { getTicketById, addComment, updateTicketStatus, assignTicket } from "../../services/ticketAPI";
@@ -27,17 +27,13 @@ export default function TicketDetailsPage() {
 
   const isStaff = user.role === "admin" || user.role === "employee";
   const basePath = user.role === "customer" ? "/customer" : `/${user.role}`;
+  const currentUserId = (user?.id || user?._id)?.toString?.() ?? "";
+  const assignedToId = ticket?.assignedTo ? (typeof ticket.assignedTo === "string" ? ticket.assignedTo : ticket.assignedTo._id || ticket.assignedTo.id)?.toString?.() ?? "" : "";
+  const isAssignedEmployee = user?.role === "employee" && assignedToId && assignedToId === currentUserId;
 
   const [employees, setEmployees] = useState([]);
 
-  useEffect(() => {
-    fetchTicket();
-    if (user.role === "admin") {
-      getEmployees().then(res => setEmployees(res.data || [])).catch(err => console.error(err));
-    }
-  }, [id]);
-
-  async function fetchTicket() {
+  const fetchTicket = useCallback(async () => {
     try {
       setIsLoading(true);
       const res = await getTicketById(id);
@@ -47,7 +43,14 @@ export default function TicketDetailsPage() {
     } finally {
       setIsLoading(false);
     }
-  }
+  }, [id]);
+
+  useEffect(() => {
+    fetchTicket();
+    if (user.role === "admin") {
+      getEmployees().then(res => setEmployees(res.data || [])).catch(err => console.error(err));
+    }
+  }, [fetchTicket, user.role]);
 
   async function handleStatusChange(e) {
     const newStatus = e.target.value;
@@ -184,7 +187,7 @@ export default function TicketDetailsPage() {
             </div>
 
             {/* Add Comment Form */}
-            {ticket.status !== "closed" && (user.role !== "employee" || ticket.assignedTo?._id === (user.id || user._id) || user.role === "admin") ? (
+            {ticket.status !== "closed" && (!isAssignedEmployee || user.role === "admin" || user.role === "customer" || user.role === "employee") ? (
               <form onSubmit={handleAddComment} className="border-t border-gray-100 pt-6 mt-6">
                 <textarea
                   value={newComment}
@@ -215,7 +218,7 @@ export default function TicketDetailsPage() {
                   </button>
                 </div>
               </form>
-            ) : ticket.status !== "closed" && user.role === "employee" && (
+            ) : ticket.status !== "closed" && user.role === "employee" && !isAssignedEmployee && (
               <div className="border-t border-gray-100 pt-6 mt-6 text-center">
                 <p className="text-sm text-gray-500 italic">You must be assigned to this ticket to add comments.</p>
               </div>

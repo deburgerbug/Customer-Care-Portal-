@@ -14,12 +14,19 @@ function EmployeeDashboard() {
   });
   const [isLoading, setIsLoading] = useState(true);
 
+  const employeeId = user?.id || user?._id;
+
   useEffect(() => {
     async function fetchMetrics() {
+      if (!employeeId) {
+        setIsLoading(false);
+        return;
+      }
+
       try {
         setIsLoading(true);
         // Fetch tickets assigned to this employee
-        const response = await getTickets({ assignedTo: user.id || user._id, limit: 1 });
+        const response = await getTickets({ assignedTo: employeeId, limit: 1 });
         setMetrics({
           assignedTickets: response.pagination?.totalCount || 0,
         });
@@ -31,7 +38,7 @@ function EmployeeDashboard() {
     }
 
     fetchMetrics();
-  }, []);
+  }, [employeeId]);
 
   return (
     <div className="max-w-6xl mx-auto py-8">
@@ -48,7 +55,7 @@ function EmployeeDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
 
           {/* Metric Card: Assigned Tickets */}
-          <div className="w-40 bg-white border border-gray-300 rounded-md p-2 shadow-sm flex flex-col justify-between">
+          <div className="w-40 bg-white border border-gray-500 rounded-md p-4 shadow-lm flex flex-col justify-between">
             <div>
               <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Assigned Tickets</p>
               <h3 className="text-2xl font-black text-gray-900 leading-tight">{metrics.assignedTickets}</h3>

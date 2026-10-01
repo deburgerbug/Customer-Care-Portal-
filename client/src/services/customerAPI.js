@@ -19,7 +19,7 @@ export async function createCustomer(customerData) {
 
 export async function getCustomers(params = {}) {
   const query = new URLSearchParams(
-    Object.entries(params).filter(([_, v]) => v !== undefined && v !== "")
+    Object.entries(params).filter(([, v]) => v !== undefined && v !== "")
   ).toString();
 
   const response = await apiClient(`${API_URL}${query ? `?${query}` : ""}`);
