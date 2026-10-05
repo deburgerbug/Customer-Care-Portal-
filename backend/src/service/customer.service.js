@@ -9,9 +9,10 @@ import { validateCustomerData } from "../utils/customer.validation.js";
  * - Customer: sees only their own profile
  */
 function getAuthFilter(user) {
-  if (user.role === "admin") return {};
+  if (user.role === "admin" || user.role === "super_admin") return {};
   if (user.role === "employee") return { assignedTo: user.id };
-  return { _id: user.customerId };
+  if (user.role === "customer") return { _id: user.customerId || null };
+  return { _id: null };
 }
 
 /**
@@ -21,12 +22,21 @@ function getAuthFilter(user) {
  */
 export async function createCustomer(customerData, user) {
   validateCustomerData(customerData);
-  
+
+  if (user.role === "customer") {
+    if (user.customerId) {
+      const existingCustomer = await Customer.findById(user.customerId);
+      if (existingCustomer) {
+        return existingCustomer;
+      }
+    }
+  }
+
   // If employee creates customer, automatically assign to them
   if (user.role === "employee") {
     customerData.assignedTo = user.id;
   }
-  
+
   const customer = await Customer.create(customerData);
 
   // If a customer is creating their own profile, link it to their user account

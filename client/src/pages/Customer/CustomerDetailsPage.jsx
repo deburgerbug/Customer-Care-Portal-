@@ -155,7 +155,9 @@ function CustomerDetailsPage() {
         <div className="flex items-center gap-3">
           <HasPermission required={PERMISSIONS.CUSTOMER_UPDATE}>
             <Link
-              to={`/${user?.role}/customers/${id}/edit`}
+              to={user?.role === "customer"
+                ? `/customer/profile/${id}/edit`
+                : `/${user?.role === "super_admin" ? "admin" : user?.role}/customers/${id}/edit`}
               className="px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 shadow-sm transition inline-flex items-center gap-1.5"
             >
               &#9998; Edit Form

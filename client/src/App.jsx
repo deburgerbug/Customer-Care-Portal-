@@ -42,9 +42,9 @@ function RootRedirect() {
     return <Navigate to="/login" replace />;
   }
 
-  if (user.role === "admin") return <Navigate to="/admin/customers" replace />;
+  if (user.role === "super_admin" || user.role === "admin") return <Navigate to="/admin/customers" replace />;
   if (user.role === "employee") return <Navigate to="/employee/customers" replace />;
-  
+
   return <Navigate to="/customer/profile" replace />;
 }
 
@@ -64,7 +64,7 @@ function App() {
           {/* Protected Role-Based Routes */}
 
           {/* Admin Routes */}
-          <Route path="/admin" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout /></ProtectedRoute>}>
+          <Route path="/admin" element={<ProtectedRoute allowedRoles={["admin", "super_admin"]}><AdminLayout /></ProtectedRoute>}>
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="customers" element={<CustomerListPage />} />
             <Route path="customers/new" element={<CustomerPage />} />
@@ -77,7 +77,7 @@ function App() {
           </Route>
 
           {/* Employee Routes */}
-          <Route path="/employee" element={<ProtectedRoute allowedRoles={["employee", "admin"]}><EmployeeLayout /></ProtectedRoute>}>
+          <Route path="/employee" element={<ProtectedRoute allowedRoles={["employee", "admin", "super_admin"]}><EmployeeLayout /></ProtectedRoute>}>
             <Route path="dashboard" element={<EmployeeDashboard />} />
             <Route path="customers" element={<CustomerListPage />} />
             <Route path="customers/new" element={<CustomerPage />} />
@@ -91,6 +91,7 @@ function App() {
           <Route path="/customer" element={<ProtectedRoute allowedRoles={["customer"]}><CustomerLayout /></ProtectedRoute>}>
             <Route path="profile" element={<CustomerDetailsPage />} />
             <Route path="profile/new" element={<CustomerPage />} />
+            <Route path="profile/:id/edit" element={<CustomerPage />} />
             <Route path="support" element={<TicketListPage />} />
             <Route path="support/new" element={<TicketFormPage />} />
             <Route path="support/:id" element={<TicketDetailsPage />} />

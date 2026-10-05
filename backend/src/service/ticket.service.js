@@ -112,7 +112,7 @@ export async function updateTicketStatus(ticketId, status, user) {
   
   if (!ticket) throw new Error("Ticket not found");
   
-  if (user.role === "employee" && ticket.assignedTo?.toString() !== user.id) {
+  if (user.role === "employee" && ticket.assignedTo?.toString() !== user.id?.toString()) {
     throw new Error("You can only update tickets assigned to you.");
   }
 
@@ -129,7 +129,7 @@ export async function addComment(ticketId, text, isInternal, user) {
     throw new Error("Ticket not found");
   }
 
-  if (user.role === "employee" && ticket.assignedTo?.toString() !== user.id) {
+  if (user.role === "employee" && ticket.assignedTo?.toString() !== user.id?.toString()) {
     throw new Error("You can only comment on tickets assigned to you.");
   }
 

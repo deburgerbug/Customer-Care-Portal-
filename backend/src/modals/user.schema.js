@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
+import { PERMISSIONS } from "../config/permissions.js";
 
 const refreshTokenSchema = new mongoose.Schema(
   {
@@ -65,6 +66,18 @@ const userSchema = new mongoose.Schema(
     customPermissions: {
       type: [String],
       default: [],
+      validate: {
+        validator(value) {
+          if (!Array.isArray(value)) return false;
+          const allowed = new Set(Object.values(PERMISSIONS));
+          return value.every((permission) => {
+            if (typeof permission !== "string") return false;
+            const normalized = permission.trim();
+            return normalized !== "*" && allowed.has(normalized);
+          });
+        },
+        message: "Custom permissions must be valid permission values",
+      },
     },
 
     isActive: {

@@ -37,7 +37,7 @@ function ProtectedRoute({ children, allowedRoles }) {
   // Role check
   if (allowedRoles && !allowedRoles.includes(user.role)) {
     // If they aren't authorized for this route, bounce them to their correct home
-    if (user.role === "admin") return <Navigate to="/admin/customers" replace />;
+    if (user.role === "super_admin" || user.role === "admin") return <Navigate to="/admin/customers" replace />;
     if (user.role === "employee") return <Navigate to="/employee/customers" replace />;
     return <Navigate to="/customer/profile" replace />;
   }

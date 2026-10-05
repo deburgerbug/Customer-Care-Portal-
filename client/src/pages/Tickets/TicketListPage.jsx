@@ -108,7 +108,7 @@ export default function TicketListPage() {
               {user.role === "employee" && (
                 <option value={user.id || user._id}>Me</option>
               )}
-              <option value="unassigned">Others</option>
+              {/* <option value="unassigned">Others</option> */}
               {/* <option disabled>──────────</option> */}
               {employees.map(emp => (
                 <option key={emp._id} value={emp._id}>

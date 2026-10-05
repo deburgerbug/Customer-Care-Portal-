@@ -64,16 +64,30 @@ const ROLE_PERMISSIONS = {
   ]
 };
 
-// Helper: Calculate total permissions
+export const VALID_PERMISSIONS = Object.values(PERMISSIONS);
+
+export function sanitizeCustomPermissions(customPermissions = []) {
+  if (!Array.isArray(customPermissions)) {
+    return [];
+  }
+
+  return [...new Set(
+    customPermissions
+      .filter((permission) => typeof permission === "string")
+      .map((permission) => permission.trim())
+      .filter((permission) => permission && permission !== "*" && VALID_PERMISSIONS.includes(permission))
+  )];
+}
+
 export function getEffectivePermissions(user) {
   if (!user) return [];
+
   const basePerms = ROLE_PERMISSIONS[user.role] || [];
-  const customPerms = user.customPermissions || [];
-  // Return unique combination of both
+  const customPerms = sanitizeCustomPermissions(user.customPermissions || []);
+
   return [...new Set([...basePerms, ...customPerms])];
 }
 
-// Permission-Based Access Control (PBAC) guard
 export function requirePermission(requiredPermission) {
   return (req, res, next) => {
     if (!req.user) {
@@ -82,7 +96,6 @@ export function requirePermission(requiredPermission) {
 
     const effectivePermissions = getEffectivePermissions(req.user);
 
-    // Check for wildcard bypass (Super Admin) or specific permission match
     if (effectivePermissions.includes("*") || effectivePermissions.includes(requiredPermission)) {
       return next();
     }

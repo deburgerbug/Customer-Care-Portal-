@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState, useEffect } from "react";
-import { logoutUser } from "../services/authAPI";
+import { getMe, logoutUser } from "../services/authAPI";
 import { ROLE_PERMISSIONS } from "./authPermissions.js";
 
 const AuthContext = createContext(null);
@@ -9,16 +9,31 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // On app load, check localStorage for saved user
+  // On app load, hydrate the user from localStorage and refresh from the backend.
   useEffect(() => {
-    const savedUser = localStorage.getItem("user");
-    const accessToken = localStorage.getItem("accessToken");
+    const refreshUserFromServer = async () => {
+      const savedUser = localStorage.getItem("user");
+      const accessToken = localStorage.getItem("accessToken");
 
-    if (savedUser && accessToken) {
-      setUser(JSON.parse(savedUser));
-    }
+      if (!savedUser || !accessToken) {
+        setUser(null);
+        setIsLoading(false);
+        return;
+      }
 
-    setIsLoading(false);
+      try {
+        const response = await getMe();
+        const refreshedUser = response?.user || JSON.parse(savedUser);
+        localStorage.setItem("user", JSON.stringify(refreshedUser));
+        setUser(refreshedUser);
+      } catch {
+        setUser(JSON.parse(savedUser));
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    refreshUserFromServer();
   }, []);
 
   // Save tokens and user to localStorage + state

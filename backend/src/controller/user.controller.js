@@ -1,5 +1,6 @@
 import User from "../modals/user.schema.js";
 import Ticket from "../modals/ticket.schema.js";
+import { sanitizeCustomPermissions } from "../middleware/auth.middleware.js";
 
 export async function getEmployees(req, res, next) {
   try {
@@ -65,9 +66,38 @@ export async function updateEmployee(req, res, next) {
     const { id } = req.params;
     const { name, email, department, isActive, customPermissions } = req.body;
 
-    const updateData = { name, email, department, isActive };
+    const updateData = {};
+
+    if (name !== undefined) updateData.name = name;
+    if (email !== undefined) updateData.email = email;
+    if (department !== undefined) updateData.department = department;
+    if (isActive !== undefined) {
+      if (req.user.role !== "super_admin" && req.user.role !== "admin") {
+        return res.status(403).json({
+          success: false,
+          message: "Forbidden: You are not allowed to change employee activation state",
+        });
+      }
+      updateData.isActive = isActive;
+    }
+
     if (customPermissions !== undefined) {
-      updateData.customPermissions = customPermissions;
+      if (req.user.role !== "super_admin" && req.user.role !== "admin") {
+        return res.status(403).json({
+          success: false,
+          message: "Forbidden: You are not allowed to manage employee permissions",
+        });
+      }
+
+      const sanitizedPermissions = sanitizeCustomPermissions(customPermissions);
+      if (sanitizedPermissions.length !== (Array.isArray(customPermissions) ? customPermissions.length : 0)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid custom permissions provided",
+        });
+      }
+
+      updateData.customPermissions = sanitizedPermissions;
     }
 
     const employee = await User.findOneAndUpdate(

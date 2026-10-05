@@ -63,7 +63,7 @@ function AdminDashboard() {
           <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm flex flex-col justify-between">
             <div>
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Total Customers</p>
-              <h3 className="text-4xl font-black text-gray-900">{metrics.totalCustomers}</h3>
+              <h3 className="w-3xs text-6xl font-black text-gray-900">{metrics.totalCustomers}</h3>
             </div>
             <div className="mt-4 pt-4 border-t border-gray-100">
               <Link to="/admin/customers" className="text-sm font-semibold text-indigo-600 hover:text-indigo-800 transition flex items-center gap-1">
