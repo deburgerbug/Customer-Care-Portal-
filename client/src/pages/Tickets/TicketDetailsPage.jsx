@@ -91,52 +91,56 @@ export default function TicketDetailsPage() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center p-12">
-        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+      <div className="flex justify-center py-10">
+        <div className="w-7 h-7 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   if (error || !ticket) {
     return (
-      <div className="max-w-2xl mx-auto p-4 text-center mt-12">
-        <div className="bg-red-50 border border-red-200 text-red-700 p-6 rounded-xl mb-4">
-          <p className="font-bold">{error || "Ticket not found"}</p>
+      <div className="max-w-2xl text-center py-8">
+        <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-md mb-3 text-sm">
+          {error || "Ticket not found"}
         </div>
-        <Link to={`${basePath}/support`} className="text-blue-600 font-semibold hover:underline">
-          &larr; Back to Support Tickets
+        <Link to={`${basePath}/support`} className="text-blue-600 text-sm hover:underline">
+          ← Back to tickets
         </Link>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="flex items-center gap-4 mb-6">
+    <div className="max-w-4xl">
+      <div className="flex items-start gap-3 mb-4">
         <Link
           to={`${basePath}/support`}
-          className="w-10 h-10 flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-full transition"
+          className="px-2.5 py-1.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-600 rounded-md text-sm shrink-0"
         >
-          &larr;
+          ←
         </Link>
-        <div className="flex-1">
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">{ticket.title}</h1>
-            <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold uppercase border ${ticket.status === 'open' ? 'bg-green-100 text-green-800 border-green-200' :
-                ticket.status === 'in-progress' ? 'bg-blue-100 text-blue-800 border-blue-200' :
-                  'bg-gray-100 text-gray-800 border-gray-200'
-              }`}>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="text-xl font-semibold text-gray-900">{ticket.title}</h1>
+            <span
+              className={`px-2 py-0.5 rounded text-xs font-medium uppercase border ${
+                ticket.status === "open"
+                  ? "bg-green-50 text-green-700 border-green-200"
+                  : ticket.status === "in-progress"
+                    ? "bg-blue-50 text-blue-700 border-blue-200"
+                    : "bg-gray-50 text-gray-700 border-gray-200"
+              }`}
+            >
               {ticket.status}
             </span>
           </div>
-          <p className="text-sm text-gray-500 mt-1">
-            Ticket ID: {ticket._id} &bull; Created: {new Date(ticket.createdAt).toLocaleString()}
+          <p className="text-xs text-gray-500 mt-0.5">
+            {ticket._id} · {new Date(ticket.createdAt).toLocaleString()}
           </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
         {/* Main Content Area (Description + Comments) */}
         <div className="lg:col-span-2 space-y-6">
           {/* Original Request */}

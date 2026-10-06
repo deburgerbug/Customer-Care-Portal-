@@ -332,45 +332,36 @@ function CustomerForm() {
     }
   }
 
-  // Loading spinner during customer profile fetch
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[50vh] gap-3">
-        <div className="w-9 h-9 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-gray-500 font-medium text-sm">
-          Loading customer information...
-        </p>
+      <div className="flex flex-col items-center justify-center min-h-[40vh] gap-2">
+        <div className="w-7 h-7 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+        <p className="text-gray-500 text-sm">Loading customer...</p>
       </div>
     );
   }
 
   return (
-    // Form page container — centered with max-width
-    <div className="max-w-5xl mx-auto px-4 py-6">
-      {/* Top Header Bar — title, subtitle, and back button */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+    <div className="max-w-5xl">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
-            {isEditMode ? "Edit Customer Profile" : "New Customer Application"}
+          <h1 className="text-xl font-semibold text-gray-900">
+            {isEditMode ? "Edit Customer" : "New Customer"}
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Customer Care Service Portal &bull; Fill in the customer profile details
-          </p>
+          <p className="text-sm text-gray-500">Fill in profile details</p>
         </div>
 
-        {/* Back to list button */}
         <Link
           to={user?.role === "customer" ? `/customer/profile` : `${basePath}/customers`}
-          className="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 shadow-sm transition inline-flex items-center gap-1.5"
+          className="px-3 py-1.5 text-sm text-gray-700 bg-white border border-gray-200 rounded-md hover:bg-gray-50"
         >
-          &larr; Back
+          ← Back
         </Link>
       </div>
 
-      {/* Server error alert banner */}
       {serverError && (
-        <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm mb-6">
-          <span className="font-bold text-red-800">Error:</span> {serverError}
+        <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-md text-sm mb-3">
+          {serverError}
         </div>
       )}
 

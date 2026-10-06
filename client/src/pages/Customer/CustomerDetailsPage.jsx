@@ -122,81 +122,66 @@ function CustomerDetailsPage() {
     : "N/A";
 
   return (
-    // Outer details container — centered with max-width
-    <div className="max-w-5xl mx-auto px-4 py-8">
-      {/* Top Header & Navigation Bar */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+    <div className="max-w-5xl">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-4">
         <div>
-          {/* Back button logic: Employees/Admins go back to list, Customers go to dashboard/profile */}
           {user?.role !== "customer" && (
             <Link
-              to={user?.role === "admin" ? "/admin/customers" : "/employee/customers"}
-              className="text-sm font-semibold text-blue-600 hover:text-blue-700 inline-flex items-center gap-1"
+              to={user?.role === "admin" || user?.role === "super_admin" ? "/admin/customers" : "/employee/customers"}
+              className="text-sm text-blue-600 hover:text-blue-700"
             >
-              &larr; Back to Customer Directory
+              ← Back to customers
             </Link>
           )}
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight mt-1">
-            Customer Application Form
+          <h1 className="text-xl font-semibold text-gray-900 mt-0.5">
+            Customer Profile
           </h1>
-          <p className="text-sm text-gray-500 mt-1 flex items-center gap-2 flex-wrap">
-            Record ID:{" "}
-            <span className="font-mono text-xs bg-gray-100 px-2 py-0.5 rounded text-gray-700">
+          <p className="text-sm text-gray-500 mt-0.5 flex items-center gap-2 flex-wrap">
+            <span className="font-mono text-xs bg-gray-100 px-1.5 py-0.5 rounded text-gray-600">
               {customer._id}
-            </span>{" "}
-            &bull; Status:{" "}
-            <span className="inline-block text-xs font-semibold px-2 py-0.5 bg-green-50 text-green-700 border border-green-200 rounded-full">
+            </span>
+            <span className="text-xs font-medium px-1.5 py-0.5 bg-green-50 text-green-700 border border-green-200 rounded">
               Submitted
             </span>
           </p>
         </div>
 
-        {/* Action Cluster: Edit and Delete buttons */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <HasPermission required={PERMISSIONS.CUSTOMER_UPDATE}>
             <Link
               to={user?.role === "customer"
                 ? `/customer/profile/${id}/edit`
                 : `/${user?.role === "super_admin" ? "admin" : user?.role}/customers/${id}/edit`}
-              className="px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 shadow-sm transition inline-flex items-center gap-1.5"
+              className="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
             >
-              &#9998; Edit Form
+              Edit
             </Link>
           </HasPermission>
-          
+
           <HasPermission required={PERMISSIONS.CUSTOMER_DELETE}>
             <button
               type="button"
-              className="px-4 py-2 text-sm font-semibold text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-600 hover:text-white transition"
+              className="px-3 py-1.5 text-sm font-medium text-red-700 bg-white border border-red-200 rounded-md hover:bg-red-50"
               onClick={() => setIsDeleteModalOpen(true)}
               disabled={isDeleting}
             >
-              Delete Customer
+              Delete
             </button>
           </HasPermission>
         </div>
       </div>
 
-      {/* Main Document / Application Card */}
-      <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-6 sm:p-8">
-        {/* Document Header & Organization Branding */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6 border-b border-gray-200 mb-6">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center text-2xl">
-              &#128100;
-            </div>
-            <div>
-              <h2 className="text-lg font-bold text-gray-900">
-                Customer Care Service Portal
-              </h2>
-              <p className="text-xs text-gray-500">
-                Official Customer Record &amp; Profile Summary
-              </p>
-            </div>
+      <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-5">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-4 border-b border-gray-200 mb-4">
+          <div>
+            <h2 className="text-base font-semibold text-gray-900">
+              {customer.firstName} {customer.lastName}
+            </h2>
+            <p className="text-xs text-gray-500">Customer record summary</p>
           </div>
           <div className="text-left sm:text-right">
-            <span className="block text-xs text-gray-400 uppercase tracking-wider font-semibold">
-              Registered On
+            <span className="block text-[11px] text-gray-400 uppercase tracking-wide font-medium">
+              Registered
             </span>
             <strong className="text-sm font-bold text-gray-800">
               {customer.createdAt
@@ -210,48 +195,45 @@ function CustomerDetailsPage() {
           </div>
         </div>
 
-        {/* Section 1: Customer Basic Information (Always Visible) */}
         <section>
-          <div className="flex items-center gap-2 mb-4">
-            <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="w-5 h-5 rounded bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center">
               1
             </span>
-            <h3 className="text-base font-bold text-gray-900">
-              Customer Basic Information
-            </h3>
+            <h3 className="text-sm font-semibold text-gray-900">Basic Information</h3>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-200">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-slate-50 p-3 rounded-md border border-gray-200">
             <div>
-              <span className="block text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              <span className="block text-[11px] font-medium text-gray-500 uppercase tracking-wide">
                 Full Name
               </span>
-              <span className="text-base font-bold text-gray-900 mt-0.5 block">
+              <span className="text-sm font-semibold text-gray-900 mt-0.5 block">
                 {customer.firstName} {customer.lastName}
               </span>
             </div>
 
             <div>
-              <span className="block text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              <span className="block text-[11px] font-medium text-gray-500 uppercase tracking-wide">
                 Gender
               </span>
-              <span className="text-sm font-semibold text-gray-800 mt-0.5 block">
+              <span className="text-sm text-gray-800 mt-0.5 block">
                 {customer.gender || "Not specified"}
               </span>
             </div>
 
             <div>
-              <span className="block text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              <span className="block text-[11px] font-medium text-gray-500 uppercase tracking-wide">
                 Date of Birth
               </span>
-              <span className="text-sm font-semibold text-gray-800 mt-0.5 block">
+              <span className="text-sm text-gray-800 mt-0.5 block">
                 {formattedDob}
               </span>
             </div>
 
             <div>
-              <span className="block text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                Calculated Age
+              <span className="block text-[11px] font-medium text-gray-500 uppercase tracking-wide">
+                Age
               </span>
               <span className="inline-block text-xs font-bold px-2.5 py-1 mt-0.5 rounded-full bg-blue-100 text-blue-800 border border-blue-200">
                 {age}
