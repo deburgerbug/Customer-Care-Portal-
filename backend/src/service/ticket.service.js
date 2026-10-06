@@ -1,6 +1,6 @@
 import Ticket from "../modals/ticket.schema.js";
 import Customer from "../modals/customer.schema.js";
-
+import User from "../modals/user.schema.js"
 /**
  * Filter tickets based on role:
  * - Admin: Sees all tickets
@@ -44,6 +44,15 @@ export async function getTickets(queryOptions = {}, user) {
       filter.assignedTo = null;
     } else {
       filter.assignedTo = queryOptions.assignedTo;
+    }
+  }
+  //Department Filter (select from department fields)
+  if (queryOptions.department) {
+    const employeeDept = await User.find({ department: queryOptions.department }).select('_id');
+    const employeeIds = employeeDept.map(emp => emp._id);
+
+    if (!filter.assignedTo) {
+      filter.assignedTo = { $in: employeeIds };
     }
   }
 
@@ -109,9 +118,9 @@ export async function getTicketById(ticketId, user) {
 export async function updateTicketStatus(ticketId, status, user) {
   const filter = await getTicketAuthFilter(user);
   const ticket = await Ticket.findOne({ _id: ticketId, ...filter });
-  
+
   if (!ticket) throw new Error("Ticket not found");
-  
+
   if (user.role === "employee" && ticket.assignedTo?.toString() !== user.id?.toString()) {
     throw new Error("You can only update tickets assigned to you.");
   }
@@ -124,7 +133,7 @@ export async function updateTicketStatus(ticketId, status, user) {
 export async function addComment(ticketId, text, isInternal, user) {
   const filter = await getTicketAuthFilter(user);
   const ticket = await Ticket.findOne({ _id: ticketId, ...filter });
-  
+
   if (!ticket) {
     throw new Error("Ticket not found");
   }
@@ -146,13 +155,13 @@ export async function addComment(ticketId, text, isInternal, user) {
 
   await ticket.save();
   await ticket.populate("comments.userId", "name role");
-  
+
   if (user.role === "customer") {
     const ticketObj = ticket.toObject();
     ticketObj.comments = ticketObj.comments.filter(c => !c.isInternal);
     return ticketObj;
   }
-  
+
   return ticket;
 }
 

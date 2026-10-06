@@ -17,6 +17,8 @@ export default function TicketListPage() {
   const [employees, setEmployees] = useState([]);
   const [searchParams] = useSearchParams();
   const [assignedFilter, setAssignedFilter] = useState(searchParams.get("assignedTo") || "all");
+  const [statusFilter, setStatusFilter] = useState("all")
+  const [departmentFilter, setDepartmentFilter] = useState("all")
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
@@ -28,6 +30,12 @@ export default function TicketListPage() {
       try {
         setIsLoading(true);
         const params = { page, limit: 10 };
+        if (statusFilter !== "all") {
+          params.status = statusFilter;
+        }
+        if (departmentFilter !== "all") {
+          params.department = departmentFilter;
+        }
         if (assignedFilter !== "all") {
           params.assignedTo = assignedFilter;
         }
@@ -43,7 +51,7 @@ export default function TicketListPage() {
       }
     }
     fetchTickets();
-  }, [assignedFilter, page]);
+  }, [assignedFilter, departmentFilter, statusFilter, page]);
 
   // Reset page to 1 when filter changes
   useEffect(() => {
@@ -84,143 +92,172 @@ export default function TicketListPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+    <div className="max-w-5xl">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
-            Support Tickets
-          </h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <h1 className="text-xl font-semibold text-gray-900">Support Tickets</h1>
+          <p className="text-sm text-gray-500">
             {isStaff
-              ? "Manage and resolve customer support requests"
-              : "View and track your support requests"}
+              ? "Manage customer support requests"
+              : "Track your support requests"}
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {isStaff && (
-            <select
-              value={assignedFilter}
-              onChange={(e) => setAssignedFilter(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 transition"
-            >
-              <option value="all">All Tickets</option>
-              {user.role === "employee" && (
-                <option value={user.id || user._id}>Me</option>
-              )}
-              {/* <option value="unassigned">Others</option> */}
-              {/* <option disabled>──────────</option> */}
-              {employees.map(emp => (
-                <option key={emp._id} value={emp._id}>
-                  {emp.name} {emp.ticketCount !== undefined ? `(${emp.ticketCount})` : ''}
-                </option>
-              ))}
-            </select>
+            <>
+              {/* Assigned Filter */}
+              <select
+                value={assignedFilter}
+                onChange={(e) => setAssignedFilter(e.target.value)}
+                className="px-2.5 py-1.5 border border-gray-200 rounded-md text-sm bg-white outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600/20"
+              >
+                <option value="all">All Tickets</option>
+                {user.role === "employee" && (
+                  <option value={user.id || user._id}>Me</option>
+                )}
+                {employees.map((emp) => (
+                  <option key={emp._id} value={emp._id}>
+                    {emp.name}
+                    {emp.ticketCount !== undefined ? ` (${emp.ticketCount})` : ""}
+                  </option>
+                ))}
+              </select>
+
+              {/* Status Filter */}
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="px-2.5 py-1.5 border border-gray-200 rounded-md text-sm bg-white outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600/20"
+              >
+                <option value="all">All Statuses</option>
+                <option value="open">Open</option>
+                <option value="in-progress">In Progress</option>
+                <option value="resolved">Resolved</option>
+                <option value="closed">Closed</option>
+              </select>
+
+              {/* Department Filter (Add options based on your DB) */}
+              <select
+                value={departmentFilter}
+                onChange={(e) => setDepartmentFilter(e.target.value)}
+                className="px-2.5 py-1.5 border border-gray-200 rounded-md text-sm bg-white outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600/20"
+              >
+                <option value="all">All Departments</option>
+                <option value="Sales">Sales</option>
+                <option value="Billing">Billing</option>
+                <option value="HR">HR</option>
+                <option value="Network">Network</option>
+                <option value="Management">Management</option>
+
+              </select>
+            </>
           )}
+
 
           {user.role === "customer" && (
             <Link
               to={`${basePath}/support/new`}
-              className="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-sm hover:bg-blue-700 transition"
+              className="px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition"
             >
-              + New Support Ticket
+              + New Ticket
             </Link>
           )}
         </div>
       </div>
 
       {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+        <div className="mb-3 px-3 py-2 bg-red-50 border border-red-200 text-red-700 rounded-md text-sm">
           {error}
         </div>
       )}
 
-      <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
         {isLoading ? (
-          <div className="flex justify-center p-12">
-            <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          <div className="flex justify-center py-10">
+            <div className="w-7 h-7 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
           </div>
         ) : tickets.length === 0 ? (
-          <div className="text-center p-12 text-gray-500">
-            <p className="text-lg font-medium text-gray-900 mb-1">No tickets found</p>
+          <div className="text-center py-10 text-gray-500">
+            <p className="text-sm font-medium text-gray-900 mb-0.5">No tickets found</p>
             <p className="text-sm">
-              {isStaff ? "Your queue is empty!" : "You haven't submitted any support requests yet."}
+              {isStaff
+                ? "Your queue is empty."
+                : "You haven't submitted any support requests yet."}
             </p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wider border-b border-gray-200">
-                  <th className="py-3 px-6 font-semibold">Ticket</th>
-                  {isStaff && <th className="py-3 px-6 font-semibold">Customer</th>}
-                  <th className="py-3 px-6 font-semibold">Status</th>
-                  <th className="py-3 px-6 font-semibold">Priority</th>
-                  <th className="py-3 px-6 font-semibold text-right">Action</th>
+                <tr className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide border-b border-gray-200">
+                  <th className="py-2 px-3 font-medium">Ticket</th>
+                  {isStaff && <th className="py-2 px-3 font-medium">Customer</th>}
+                  <th className="py-2 px-3 font-medium">Status</th>
+                  <th className="py-2 px-3 font-medium">Priority</th>
+                  <th className="py-2 px-3 font-medium text-right">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 text-sm">
                 {tickets.map((ticket) => (
-                  <tr key={ticket._id} className="hover:bg-gray-50 transition">
-                    <td className="py-4 px-6">
-                      <p className="font-bold text-gray-900 truncate max-w-[200px] sm:max-w-xs">
+                  <tr key={ticket._id} className="hover:bg-slate-50 transition">
+                    <td className="py-2.5 px-3">
+                      <p className="font-medium text-gray-900 truncate max-w-[200px] sm:max-w-xs">
                         {ticket.title}
                       </p>
-                      <p className="text-xs text-gray-500 mt-0.5">
+                      <p className="text-xs text-gray-500">
                         {new Date(ticket.createdAt).toLocaleDateString()}
                       </p>
                     </td>
                     {isStaff && (
-                      <td className="py-4 px-6">
-                        <span className="font-medium text-gray-700">
-                          {ticket.customerId?.firstName} {ticket.customerId?.lastName}
-                        </span>
+                      <td className="py-2.5 px-3 text-gray-700">
+                        {ticket.customerId?.firstName} {ticket.customerId?.lastName}
                       </td>
                     )}
-                    <td className="py-4 px-6">
+                    <td className="py-2.5 px-3">
                       <span
-                        className={`inline-block px-2.5 py-1 text-xs font-bold border rounded-full capitalize ${getStatusColor(
+                        className={`inline-block px-2 py-0.5 text-xs font-medium border rounded capitalize ${getStatusColor(
                           ticket.status
                         )}`}
                       >
                         {ticket.status}
                       </span>
                     </td>
-                    <td className="py-4 px-6">
+                    <td className="py-2.5 px-3">
                       <span className={`capitalize ${getPriorityColor(ticket.priority)}`}>
                         {ticket.priority}
                       </span>
                     </td>
-                    <td className="py-4 px-6 text-right">
+                    <td className="py-2.5 px-3 text-right">
                       <Link
                         to={`${basePath}/support/${ticket._id}`}
-                        className="text-blue-600 font-semibold hover:text-blue-800 transition text-sm"
+                        className="text-blue-600 font-medium hover:text-blue-800 text-sm"
                       >
-                        View &rarr;
+                        View →
                       </Link>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-            
-            {/* Pagination Controls */}
+
             {totalPages > 1 && (
-              <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 bg-gray-50">
+              <div className="flex items-center justify-between px-3 py-2.5 border-t border-gray-200 bg-gray-50/60">
                 <button
-                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page === 1}
-                  className="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                  className="px-2.5 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50"
                 >
                   Previous
                 </button>
-                <span className="text-sm text-gray-600">
-                  Page <span className="font-bold">{page}</span> of <span className="font-bold">{totalPages}</span>
+                <span className="text-xs text-gray-600">
+                  Page <span className="font-semibold">{page}</span> of{" "}
+                  <span className="font-semibold">{totalPages}</span>
                 </span>
                 <button
-                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
-                  className="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                  className="px-2.5 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50"
                 >
                   Next
                 </button>
