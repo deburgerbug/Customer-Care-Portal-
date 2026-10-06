@@ -8,7 +8,8 @@ import User from "../modals/user.schema.js"
  * - Customer: Sees only their own tickets.
  */
 async function getTicketAuthFilter(user) {
-  if (user.role === "admin" || user.role === "employee") return {};
+  if (user.role === "admin") return {};
+  if (user.role === "employee") return { assignedTo: user.id || user._id };
   return { customerId: user.customerId };
 }
 
