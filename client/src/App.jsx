@@ -74,6 +74,7 @@ function App() {
             <Route path="employees/new" element={<EmployeeFormPage />} />
             <Route path="support" element={<TicketListPage />} />
             <Route path="support/:id" element={<TicketDetailsPage />} />
+            <Route path="profile" element={<div className="p-8 text-center text-gray-500">Profile view coming soon</div>} />
           </Route>
 
           {/* Employee Routes */}
@@ -85,6 +86,7 @@ function App() {
             <Route path="customers/:id/edit" element={<CustomerPage />} />
             <Route path="support" element={<TicketListPage />} />
             <Route path="support/:id" element={<TicketDetailsPage />} />
+            <Route path="profile" element={<div className="p-8 text-center text-gray-500">Profile view coming soon</div>} />
           </Route>
 
           {/* Customer Routes */}

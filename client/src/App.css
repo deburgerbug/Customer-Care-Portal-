@@ -1,17 +1,21 @@
+/* Compact app shell — prefer Tailwind utilities in components; keep this light. */
+
 :root {
-  --compact-gap: 0.75rem;
-  --compact-padding-sm: 0.75rem;
-  --compact-padding-md: 1rem;
-  --compact-radius: 0.75rem;
-  --sidebar-width: 220px;
+  --page-max: 72rem;
+  --radius: 0.5rem;
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
 }
 
 html {
-  font-size: 14px;
+  font-size: 15px;
+  -webkit-font-smoothing: antialiased;
 }
 
 body {
-  font-size: 14px;
+  margin: 0;
+  color: #111827;
+  background: #f8fafc;
   line-height: 1.45;
 }
 
@@ -19,89 +23,26 @@ body {
   min-height: 100vh;
 }
 
-main {
-  padding: 1rem !important;
-}
-
-aside {
-  width: var(--sidebar-width) !important;
-}
-
-aside nav a,
-aside nav button,
-aside .p-4 button,
-aside .p-4 a {
-  padding-top: 0.55rem !important;
-  padding-bottom: 0.55rem !important;
-}
-
-input,
-select,
-textarea,
-button,
-a {
-  transition: all 0.2s ease;
-}
-
-input,
+/* Shared form control density */
+input:not([type="checkbox"]):not([type="radio"]),
 select,
 textarea {
-  min-height: 2.5rem;
-  padding-top: 0.55rem;
-  padding-bottom: 0.55rem;
   font-size: 0.875rem;
 }
 
-button {
-  min-height: 2.25rem;
+button:disabled {
+  cursor: not-allowed;
 }
 
-form .flex-col.gap-1\.5,
-form .flex-col.gap-1\.5 > * {
-  gap: 0.35rem !important;
-}
-
-.card,
-[data-testid="card"],
-.bg-white.border {
-  border-radius: 0.75rem;
-}
-
-.table th,
-.table td,
+/* Tables stay readable at compact density */
 table th,
 table td {
-  padding-top: 0.55rem !important;
-  padding-bottom: 0.55rem !important;
+  vertical-align: middle;
 }
 
-.table thead th,
-.table tbody td {
-  font-size: 0.8rem;
-}
-
-label {
-  font-size: 0.8rem;
-}
-
-h1 {
-  font-size: clamp(1.5rem, 2vw, 2rem) !important;
-}
-
-h2 {
-  font-size: clamp(1.2rem, 1.6vw, 1.6rem) !important;
-}
-
-h3 {
-  font-size: 1.1rem !important;
-}
-
-@media (max-width: 640px) {
-  main {
-    padding: 0.75rem !important;
-  }
-
-  nav .h-16 {
-    height: 3.25rem !important;
+/* Spinner helper used across pages */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
 }

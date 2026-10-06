@@ -1,12 +1,8 @@
 import { useState, useEffect } from "react";
-import { Link, Outlet, useNavigate } from "react-router-dom";
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { getTicketMetrics } from "../services/ticketAPI";
 
-/**
- * AdminLayout — Sidebar layout for Admin portal
- * Renders a sidebar navigation with expanded options and a main content area.
- */
 function AdminLayout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -22,8 +18,6 @@ function AdminLayout() {
       }
     }
     fetchNotifications();
-    
-    // Poll every 30 seconds for new tickets (simple simulation of real-time)
     const interval = setInterval(fetchNotifications, 30000);
     return () => clearInterval(interval);
   }, []);
@@ -33,68 +27,70 @@ function AdminLayout() {
     navigate("/login");
   }
 
+  const linkClass = ({ isActive }) =>
+    `inline-flex items-center h-12 px-1 text-sm font-medium border-b-2 transition ${
+      isActive
+        ? "border-blue-500 text-white"
+        : "border-transparent text-slate-300 hover:text-white hover:border-slate-500"
+    }`;
+
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Sidebar */}
-      <aside className="w-64 bg-indigo-900 text-white flex flex-col">
-        <div className="p-4 flex items-center gap-3 border-b border-indigo-800">
-          <div className="w-8 h-8 rounded bg-indigo-500 flex items-center justify-center font-bold">
-            A
-          </div>
-          <div>
-            <h2 className="text-sm font-bold">Admin Portal</h2>
-            <p className="text-xs text-indigo-300">Customer Care</p>
-          </div>
-        </div>
+    <div className="min-h-screen bg-slate-50 flex flex-col">
+      <nav className="bg-slate-950 border-b border-slate-800 sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex justify-between h-12">
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded bg-blue-600 text-white flex items-center justify-center text-xs font-bold">
+                  A
+                </div>
+                <span className="font-semibold text-white text-sm">
+                  Admin Portal
+                </span>
+              </div>
 
-        <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-          <Link
-            to="/admin/dashboard"
-            className="block px-4 py-2.5 rounded-md hover:bg-indigo-800 transition text-sm font-medium"
-          >
-            Dashboard
-          </Link>
-          <Link
-            to="/admin/customers"
-            className="block px-4 py-2.5 rounded-md hover:bg-indigo-800 transition text-sm font-medium"
-          >
-            All Customers
-          </Link>
-          <Link
-            to="/admin/employees"
-            className="block px-4 py-2.5 rounded-md hover:bg-indigo-800 transition text-sm font-medium"
-          >
-            Manage Employees
-          </Link>
-          <Link
-            to="/admin/support"
-            className="flex items-center justify-between px-4 py-2.5 rounded-md hover:bg-indigo-800 transition text-sm font-medium"
-          >
-            <span>Support Tickets</span>
-            {openTickets > 0 && (
-              <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
-                {openTickets}
+              <div className="hidden md:flex gap-5">
+                <NavLink to="/admin/dashboard" className={linkClass}>
+                  Dashboard
+                </NavLink>
+                <NavLink to="/admin/customers" className={linkClass}>
+                  Customers
+                </NavLink>
+                <NavLink to="/admin/employees" className={linkClass}>
+                  Employees
+                </NavLink>
+                <NavLink to="/admin/support" className={linkClass}>
+                  <div className="flex items-center gap-1">
+                    <span>Support</span>
+                    {openTickets > 0 && (
+                      <span className="bg-red-500 text-white text-[10px] font-semibold min-w-4 h-4 px-1 flex items-center justify-center rounded">
+                        {openTickets}
+                      </span>
+                    )}
+                  </div>
+                </NavLink>
+                <NavLink to="/admin/profile" className={linkClass}>
+                  My Profile
+                </NavLink>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-slate-300 hidden sm:block truncate max-w-[10rem]">
+                {user?.name}
               </span>
-            )}
-          </Link>
-        </nav>
-
-        <div className="p-4 border-t border-indigo-800">
-          <div className="mb-4">
-            <p className="text-sm font-medium truncate">{user?.name}</p>
-            <p className="text-xs text-indigo-300 truncate">{user?.email}</p>
+              <button
+                onClick={handleLogout}
+                className="text-sm text-red-400 hover:text-red-300 px-2 py-1 rounded hover:bg-slate-800 transition"
+              >
+                Log Out
+              </button>
+            </div>
           </div>
-          <button
-            onClick={handleLogout}
-            className="w-full py-2 bg-indigo-800 hover:bg-indigo-700 rounded text-sm font-medium transition"
-          >
-            Log Out
-          </button>
         </div>
-      </aside>
+      </nav>
 
-      {/* Main Content Area */}
-      <main className="flex-1 overflow-y-auto p-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-5">
         <Outlet />
       </main>
     </div>

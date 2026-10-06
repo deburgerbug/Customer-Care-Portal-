@@ -1,10 +1,6 @@
-import { Link, Outlet, useNavigate } from "react-router-dom";
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
-/**
- * CustomerLayout — Top navbar layout for Customer portal
- * Renders a top navigation bar and a centered main content area.
- */
 function CustomerLayout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -14,43 +10,45 @@ function CustomerLayout() {
     navigate("/login");
   }
 
+  const linkClass = ({ isActive }) =>
+    `inline-flex items-center h-12 px-1 text-sm font-medium border-b-2 transition ${
+      isActive
+        ? "border-blue-600 text-gray-900"
+        : "border-transparent text-gray-500 hover:text-gray-800 hover:border-gray-300"
+    }`;
+
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Top Navbar */}
-      <nav className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <div className="w-8 h-8 rounded-md bg-blue-600 text-white flex items-center justify-center font-bold mr-3">
-                C
+    <div className="min-h-screen bg-slate-50 flex flex-col">
+      <nav className="bg-white border-b border-gray-200 sticky top-0 z-10">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="flex justify-between h-12">
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded bg-blue-600 text-white flex items-center justify-center text-xs font-bold">
+                  C
+                </div>
+                <span className="font-semibold text-gray-900 text-sm">
+                  Customer Care
+                </span>
               </div>
-              <span className="font-bold text-xl text-gray-900">
-                Customer Care
-              </span>
-              
-              <div className="hidden md:flex space-x-8 ml-10">
-                <Link
-                  to="/customer/profile"
-                  className="inline-flex items-center px-1 pt-1 border-b-2 border-blue-500 text-sm font-medium text-gray-900"
-                >
+
+              <div className="hidden md:flex gap-5">
+                <NavLink to="/customer/profile" className={linkClass}>
                   My Profile
-                </Link>
-                <Link
-                  to="/customer/support"
-                  className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 transition"
-                >
+                </NavLink>
+                <NavLink to="/customer/support" className={linkClass}>
                   Support
-                </Link>
+                </NavLink>
               </div>
             </div>
-            
-            <div className="flex items-center gap-4">
-              <span className="text-sm font-medium text-gray-700 hidden sm:block">
+
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-gray-600 hidden sm:block truncate max-w-[10rem]">
                 {user?.name}
               </span>
               <button
                 onClick={handleLogout}
-                className="text-sm text-red-600 font-medium hover:text-red-800 transition px-3 py-2 rounded-md hover:bg-red-50"
+                className="text-sm text-red-600 hover:text-red-800 px-2 py-1 rounded hover:bg-red-50 transition"
               >
                 Log Out
               </button>
@@ -59,8 +57,7 @@ function CustomerLayout() {
         </div>
       </nav>
 
-      {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+      <main className="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-5">
         <Outlet />
       </main>
     </div>
