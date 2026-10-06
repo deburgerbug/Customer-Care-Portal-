@@ -99,7 +99,7 @@ export async function loginUser({ email, password }) {
   user.refreshTokens = user.refreshTokens.filter((t) => t.expiresAt > now);
   user.refreshTokens.push({
     token: refreshToken,
-    expiresAt: getRefreshExpiry() ,
+    expiresAt: getRefreshExpiry(),
   });
   await user.save();
 

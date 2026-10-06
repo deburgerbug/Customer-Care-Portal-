@@ -2,10 +2,6 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { createEmployee } from "../../services/userAPI";
 
-/**
- * EmployeeFormPage — Admin view for creating a new employee
- * Route: /admin/employees/new
- */
 function EmployeeFormPage() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -20,14 +16,14 @@ function EmployeeFormPage() {
 
   function handleChange(e) {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
     if (error) setError("");
   }
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!formData.name || !formData.email || !formData.password) {
-      setError("Name, email, and password are required.");
+    if (!formData.name || !formData.email || !formData.password || !formData.department) {
+      setError("All fields are required");
       return;
     }
 
@@ -43,33 +39,39 @@ function EmployeeFormPage() {
     }
   }
 
+  const inputClass =
+    "px-3 py-2 border border-gray-200 rounded-md outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600/20 text-sm";
+
   return (
-    <div className="max-w-3xl mx-auto py-8">
-      <div className="flex justify-between items-center mb-8">
+    <div className="max-w-3xl">
+      <div className="flex justify-between items-center gap-3 mb-4">
         <div>
-          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Create Employee</h1>
-          <p className="text-sm text-gray-500 mt-1">Register a new staff member account</p>
+          <h1 className="text-xl font-semibold text-gray-900">Create Employee</h1>
+          <p className="text-sm text-gray-500">Register a new staff account</p>
         </div>
         <Link
           to="/admin/employees"
-          className="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+          className="px-3 py-1.5 text-sm text-gray-700 bg-white border border-gray-200 rounded-md hover:bg-gray-50"
         >
-          &larr; Back to Directory
+          ← Back
         </Link>
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm mb-6">
-          <strong className="font-bold">Error:</strong> {error}
+        <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-md text-sm mb-3">
+          {error}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="bg-white border border-gray-200 rounded-xl p-8 shadow-sm">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-          {/* Name Field */}
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="name" className="text-sm font-semibold text-gray-700">Full Name *</label>
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white border border-gray-200 rounded-lg p-4 sm:p-5"
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="flex flex-col gap-1">
+            <label htmlFor="name" className="text-sm font-medium text-gray-700">
+              Full Name *
+            </label>
             <input
               id="name"
               name="name"
@@ -77,14 +79,15 @@ function EmployeeFormPage() {
               value={formData.name}
               onChange={handleChange}
               placeholder="e.g. Jane Doe"
-              className="px-3 py-2.5 border border-gray-200 rounded-md outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/15 transition"
+              className={inputClass}
               required
             />
           </div>
 
-          {/* Email Field */}
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="email" className="text-sm font-semibold text-gray-700">Email Address *</label>
+          <div className="flex flex-col gap-1">
+            <label htmlFor="email" className="text-sm font-medium text-gray-700">
+              Email *
+            </label>
             <input
               id="email"
               name="email"
@@ -92,14 +95,15 @@ function EmployeeFormPage() {
               value={formData.email}
               onChange={handleChange}
               placeholder="jane.doe@company.com"
-              className="px-3 py-2.5 border border-gray-200 rounded-md outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/15 transition"
+              className={inputClass}
               required
             />
           </div>
 
-          {/* Password Field */}
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="password" className="text-sm font-semibold text-gray-700">Temporary Password *</label>
+          <div className="flex flex-col gap-1">
+            <label htmlFor="password" className="text-sm font-medium text-gray-700">
+              Temporary Password *
+            </label>
             <input
               id="password"
               name="password"
@@ -107,38 +111,38 @@ function EmployeeFormPage() {
               value={formData.password}
               onChange={handleChange}
               placeholder="Minimum 6 characters"
-              className="px-3 py-2.5 border border-gray-200 rounded-md outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/15 transition"
+              className={inputClass}
               required
               minLength="6"
             />
           </div>
 
-          {/* Department Field */}
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="department" className="text-sm font-semibold text-gray-700">Department</label>
-            <input
-              id="department"
-              name="department"
-              type="text"
-              value={formData.department}
-              onChange={handleChange}
-              placeholder="e.g. Sales, Support"
-              className="px-3 py-2.5 border border-gray-200 rounded-md outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600/15 transition"
-            />
+          <div className="flex flex-col gap-1">
+            <label htmlFor="department" className="text-sm font-medium text-gray-700">
+              Department
+            </label>
+            <select id="department" name="department" value={formData.department} onChange={handleChange} className={inputClass} required >
+              <option value="">Select Department</option>
+              <option value="Sales">Sales</option>
+              <option value="Billing">Billing</option>
+              <option value="HR">HR</option>
+              <option value="Network">Network</option>
+              <option value="Management">Management</option>
+            </select>
           </div>
         </div>
 
-        <div className="mt-8 pt-6 border-t border-gray-100 flex justify-end gap-3">
+        <div className="mt-4 pt-3 border-t border-gray-100 flex justify-end gap-2">
           <Link
             to="/admin/employees"
-            className="px-5 py-2.5 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+            className="px-3 py-1.5 text-sm text-gray-700 bg-white border border-gray-200 rounded-md hover:bg-gray-50"
           >
             Cancel
           </Link>
           <button
             type="submit"
             disabled={isSubmitting}
-            className="px-6 py-2.5 text-sm font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 disabled:opacity-60 transition"
+            className="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-60"
           >
             {isSubmitting ? "Creating..." : "Create Employee"}
           </button>

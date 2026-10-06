@@ -53,8 +53,10 @@ const userSchema = new mongoose.Schema(
 
     department: {
       type: String,
-      trim: true,
-      default: null,
+      enum: {
+        values: ["Sales", "Billing", "HR", "Network", "Management"],
+        messages: "Department must be sales, billing, hr, network or management",
+      }
     },
 
     customerId: {
