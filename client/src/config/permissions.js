@@ -17,5 +17,6 @@ export const PERMISSIONS = {
     EMPLOYEE_DEACTIVATE: "employee:deactivate",
     EMPLOYEE_REACTIVATE: "employee:reactivate",
     EMPLOYEE_TICKET_COMMENT: "employee:comment",
+    DEPARTMENT_MANAGE: "department:manage",
     DASHBOARD_READ: "dashboard:read",
 };

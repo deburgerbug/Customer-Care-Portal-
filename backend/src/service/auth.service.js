@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import User from "../modals/user.schema.js";
 import Customer from "../modals/customer.schema.js";
+import { resolveActiveDepartment } from "./department.service.js";
 import {
   generateAccessToken,
   generateRefreshToken,
@@ -31,16 +32,24 @@ export async function registerUser({ name, email, password, role = "customer", d
     }
   }
 
+  const departmentRecord = role === "employee"
+    ? await resolveActiveDepartment(department)
+    : null;
+
   //Create new user
   const user = await User.create({
     name: name?.trim(),
     email: normalizedEmail,
     password,
     role,
-    department: role === "employee" ? department?.trim() : null,
+    department: departmentRecord?._id || null,
     customerId,
     isEmailVerified: false,
   });
+
+  if (departmentRecord) {
+    await user.populate("department", "departmentName");
+  }
 
   const rawVerificationToken = user.createEmailVerificationToken();
   await user.save();
@@ -74,9 +83,9 @@ export async function loginUser({ email, password }) {
   const normalizedEmail = email?.trim().toLowerCase();
 
   // Find user and explicitly select password and refreshTokens
-  const user = await User.findOne({ email: normalizedEmail }).select(
-    "+password +refreshTokens"
-  );
+  const user = await User.findOne({ email: normalizedEmail })
+    .select("+password +refreshTokens")
+    .populate("department", "departmentName");
 
   if (!user || !(await user.comparePassword(password))) {
     throw new Error("Invalid email or password");
@@ -124,7 +133,9 @@ export async function refreshAccessToken(incomingToken) {
   }
 
   // Find user with active sessions
-  const user = await User.findById(decoded.id).select("+refreshTokens");
+  const user = await User.findById(decoded.id)
+    .select("+refreshTokens")
+    .populate("department", "departmentName");
   if (!user) {
     throw new Error("User not found");
   }
@@ -273,4 +284,3 @@ export async function verifyEmail(rawToken) {
     message: "Email verified successfully. You can now log in.",
   };
 }
-

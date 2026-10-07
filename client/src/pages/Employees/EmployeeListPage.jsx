@@ -103,7 +103,7 @@ function EmployeeListPage() {
         </HasPermission>
       </div>
     );
-  }, [navigate, handleDeactivate, deactivatingId]);
+  }, [navigate, handleDeactivate, deactivatingId, handleReactive]);
 
   const colDefs = useMemo(
     () => [

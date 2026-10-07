@@ -1,6 +1,7 @@
 import Ticket from "../modals/ticket.schema.js";
 import Customer from "../modals/customer.schema.js";
 import User from "../modals/user.schema.js"
+import { findActiveDepartment } from "./department.service.js";
 /**
  * Filter tickets based on role:
  * - Admin: Sees all tickets
@@ -49,7 +50,10 @@ export async function getTickets(queryOptions = {}, user) {
   }
   //Department Filter (select from department fields)
   if (queryOptions.department) {
-    const employeeDept = await User.find({ department: queryOptions.department }).select('_id');
+    const department = await findActiveDepartment(queryOptions.department);
+    const employeeDept = department
+      ? await User.find({ department: department._id }).select("_id")
+      : [];
     const employeeIds = employeeDept.map(emp => emp._id);
 
     if (!filter.assignedTo) {

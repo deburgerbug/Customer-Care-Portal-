@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs";
 import User from "./modals/user.schema.js";
 import Customer from "./modals/customer.schema.js";
 import Ticket from "./modals/ticket.schema.js";
+import Department from "./modals/department.schema.js";
 
 // Load environment variables
 dotenv.config();
@@ -21,7 +22,13 @@ async function seedDatabase() {
     await User.deleteMany({});
     await Customer.deleteMany({});
     await Ticket.deleteMany({});
+    await Department.deleteMany({});
     console.log("✅ Database wiped.");
+
+    const departmentNames = ["Sales", "Billing", "HR", "Network", "Management"];
+    const departments = await Department.insertMany(
+      departmentNames.map((departmentName) => ({ departmentName, status: true }))
+    );
 
     const COMMON_PASSWORD = "Password123!";
     const salt = await bcrypt.genSalt(12);
@@ -62,7 +69,7 @@ async function seedDatabase() {
         email: `agent${i}@example.com`,
         password: HASHED_PASSWORD,
         role: "employee",
-        department: faker.helpers.arrayElement(["Support", "Billing", "Technical"]),
+        department: faker.helpers.arrayElement(departments)._id,
         isEmailVerified: true,
         isActive: true,
       });

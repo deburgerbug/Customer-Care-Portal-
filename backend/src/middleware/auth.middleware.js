@@ -24,7 +24,7 @@ export async function authenticate(req, res, next) {
       });
     }
 
-    const user = await User.findById(decoded.id);
+    const user = await User.findById(decoded.id).populate("department", "departmentName");
     if (!user || !user.isActive) {
       return res.status(401).json({
         success: false,
@@ -46,6 +46,7 @@ const ROLE_PERMISSIONS = {
   super_admin: ["*"],
   admin: [
     PERMISSIONS.EMPLOYEE_READ, PERMISSIONS.EMPLOYEE_CREATE, PERMISSIONS.EMPLOYEE_UPDATE, PERMISSIONS.EMPLOYEE_DEACTIVATE,
+    PERMISSIONS.DEPARTMENT_MANAGE,
     PERMISSIONS.CUSTOMER_READ, PERMISSIONS.CUSTOMER_CREATE, PERMISSIONS.CUSTOMER_UPDATE, PERMISSIONS.CUSTOMER_DELETE,
     PERMISSIONS.TICKET_READ, PERMISSIONS.TICKET_CREATE, PERMISSIONS.TICKET_ASSIGN, PERMISSIONS.TICKET_UPDATE,
     PERMISSIONS.TICKET_COMMENT, PERMISSIONS.TICKET_INTERNAL_COMMENT,

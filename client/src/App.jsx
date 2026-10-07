@@ -17,6 +17,7 @@ import EmployeeFormPage from "./pages/Employees/EmployeeFormPage";
 import EmployeeDashboard from "./pages/Employees/EmployeeDashboard";
 
 import AdminDashboard from "./pages/Admin/AdminDashboard";
+import DepartmentListPage from "./pages/Admin/DepartmentListPage";
 
 import TicketListPage from "./pages/Tickets/TicketListPage";
 import TicketFormPage from "./pages/Tickets/TicketFormPage";
@@ -72,6 +73,7 @@ function App() {
             <Route path="customers/:id/edit" element={<CustomerPage />} />
             <Route path="employees" element={<EmployeeListPage />} />
             <Route path="employees/new" element={<EmployeeFormPage />} />
+            <Route path="departments" element={<DepartmentListPage />} />
             <Route path="support" element={<TicketListPage />} />
             <Route path="support/:id" element={<TicketDetailsPage />} />
             <Route path="profile" element={<div className="p-8 text-center text-gray-500">Profile view coming soon</div>} />

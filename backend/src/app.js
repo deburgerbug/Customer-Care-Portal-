@@ -4,6 +4,7 @@ import customerRoutes from "./routes/customer.routes.js"
 import authRoutes from "./routes/auth.routes.js"
 import userRoutes from "./routes/user.routes.js"
 import ticketRoutes from "./routes/ticket.routes.js"
+import departmentRoutes from "./routes/department.routes.js"
 import { errorMiddleware } from './middleware/error.middleware.js'
 const app = express()
 app.use(express.json())
@@ -17,6 +18,7 @@ app.get("/check",(req,res)=>{
 
 app.use("/auth", authRoutes)
 app.use("/users", userRoutes)
+app.use("/departments", departmentRoutes)
 app.use("/customers", customerRoutes)
 app.use("/tickets", ticketRoutes)
 

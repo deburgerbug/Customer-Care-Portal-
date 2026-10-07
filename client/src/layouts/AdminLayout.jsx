@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { getTicketMetrics } from "../services/ticketAPI";
+import HasPermission from "../components/HasPermission";
+import { PERMISSIONS } from "../config/permissions";
 
 function AdminLayout() {
   const { user, logout } = useAuth();
@@ -59,6 +61,11 @@ function AdminLayout() {
                 <NavLink to="/admin/employees" className={linkClass}>
                   Employees
                 </NavLink>
+                <HasPermission required={PERMISSIONS.DEPARTMENT_MANAGE}>
+                  <NavLink to="/admin/departments" className={linkClass}>
+                    Departments
+                  </NavLink>
+                </HasPermission>
                 <NavLink to="/admin/support" className={linkClass}>
                   <div className="flex items-center gap-1">
                     <span>Support</span>

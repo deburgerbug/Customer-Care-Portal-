@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { createEmployee } from "../../services/userAPI";
+import { getDepartments } from "../../services/departmentAPI";
 
 function EmployeeFormPage() {
   const navigate = useNavigate();
@@ -12,7 +13,27 @@ function EmployeeFormPage() {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [departments, setDepartments] = useState([]);
+  const [isLoadingDepartments, setIsLoadingDepartments] = useState(true);
+  const [departmentError, setDepartmentError] = useState("");
   const [error, setError] = useState("");
+
+  const loadDepartments = useCallback(async () => {
+    try {
+      setIsLoadingDepartments(true);
+      setDepartmentError("");
+      const response = await getDepartments();
+      setDepartments(response.data || []);
+    } catch (err) {
+      setDepartmentError(err.message || "Failed to load departments");
+    } finally {
+      setIsLoadingDepartments(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadDepartments();
+  }, [loadDepartments]);
 
   function handleChange(e) {
     const { name, value } = e.target;
@@ -24,6 +45,10 @@ function EmployeeFormPage() {
     e.preventDefault();
     if (!formData.name || !formData.email || !formData.password || !formData.department) {
       setError("All fields are required");
+      return;
+    }
+    if (isLoadingDepartments || departmentError || departments.length === 0) {
+      setError("A department must be available before creating an employee");
       return;
     }
 
@@ -119,16 +144,47 @@ function EmployeeFormPage() {
 
           <div className="flex flex-col gap-1">
             <label htmlFor="department" className="text-sm font-medium text-gray-700">
-              Department
+              Department *
             </label>
-            <select id="department" name="department" value={formData.department} onChange={handleChange} className={inputClass} required >
-              <option value="">Select Department</option>
-              <option value="Sales">Sales</option>
-              <option value="Billing">Billing</option>
-              <option value="HR">HR</option>
-              <option value="Network">Network</option>
-              <option value="Management">Management</option>
+            <select
+              id="department"
+              name="department"
+              value={formData.department}
+              onChange={handleChange}
+              className={inputClass}
+              required
+              disabled={isLoadingDepartments || Boolean(departmentError) || departments.length === 0}
+            >
+              <option value="">
+                {isLoadingDepartments
+                  ? "Loading departments..."
+                  : departments.length === 0
+                    ? "No active departments available"
+                    : "Select Department"}
+              </option>
+              {departments.map((department) => (
+                <option key={department._id} value={department._id}>
+                  {department.departmentName}
+                </option>
+              ))}
             </select>
+            {departmentError && (
+              <div className="flex items-center gap-2 text-xs text-red-600">
+                <span>{departmentError}</span>
+                <button
+                  type="button"
+                  onClick={loadDepartments}
+                  className="underline hover:text-red-800"
+                >
+                  Retry
+                </button>
+              </div>
+            )}
+            {!isLoadingDepartments && !departmentError && departments.length === 0 && (
+              <p className="text-xs text-gray-500">
+                Create or reactivate a department before adding an employee.
+              </p>
+            )}
           </div>
         </div>
 
@@ -141,7 +197,7 @@ function EmployeeFormPage() {
           </Link>
           <button
             type="submit"
-            disabled={isSubmitting}
+            disabled={isSubmitting || isLoadingDepartments || Boolean(departmentError) || departments.length === 0}
             className="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-60"
           >
             {isSubmitting ? "Creating..." : "Create Employee"}

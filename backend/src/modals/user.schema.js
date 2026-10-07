@@ -52,11 +52,11 @@ const userSchema = new mongoose.Schema(
     },
 
     department: {
-      type: String,
-      enum: {
-        values: ["Sales", "Billing", "HR", "Network", "Management"],
-        messages: "Department must be sales, billing, hr, network or management",
-      }
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Department",
+      required: function () {
+        return this.role === "employee";
+      },
     },
 
     customerId: {
@@ -170,12 +170,18 @@ userSchema.methods.createEmailVerificationToken = function () {
 
 // Format public profile (strip sensitive fields)
 userSchema.methods.toPublicJSON = function () {
+  const departmentId = this.department?._id || this.department || null;
+  const departmentName = this.populated("department")
+    ? this.department?.departmentName || null
+    : departmentId;
+
   return {
     id: this._id,
     name: this.name,
     email: this.email,
     role: this.role,
-    department: this.department,
+    department: departmentName,
+    departmentId,
     customerId: this.customerId,
     customPermissions: this.customPermissions,
     isActive: this.isActive,
