@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { getEmployees, deleteEmployee } from "../../services/userAPI.js";
+import { getEmployees, deleteEmployee, updateEmployee } from "../../services/userAPI.js";
 import HasPermission from "../../components/HasPermission.jsx";
 import { PERMISSIONS } from "../../config/permissions.js";
 
@@ -44,6 +44,18 @@ function EmployeeListPage() {
       setDeactivatingId(null);
     }
   }, [loadEmployees]);
+  
+  const handleReactive = useCallback(async(id) => {
+    try{
+      setDeactivatingId(id);
+      await updateEmployee(id, {isActive: true});
+      await loadEmployees();
+    } catch(err){
+      alert(`Error reactivating employee: ${err.message}`)
+    }finally{
+      setDeactivatingId(null);
+    }
+  }, [loadEmployees])
 
   const StatusRenderer = useCallback((params) => {
     const isActive = params.value;
@@ -78,6 +90,14 @@ function EmployeeListPage() {
               className="px-2 py-0.5 text-xs font-medium text-red-700 border border-red-200 rounded hover:bg-red-50"
             >
               {deactivatingId === emp._id ? "..." : "Deactivate"}
+            </button>
+          )}
+        </HasPermission>
+        <HasPermission required={PERMISSIONS.EMPLOYEE_UPDATE}>
+          {!emp.isActive && (
+            <button onClick={() => handleReactive(emp._id)} disabled={deactivatingId === emp._id} 
+            className="px-2 py-0.5 text-xs font-medium text-green-700 border border-green-200 rounded hover:bg green-50">
+              {deactivatingId === emp._id ? "...": "Reactivate"}
             </button>
           )}
         </HasPermission>
