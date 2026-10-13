@@ -1,4 +1,5 @@
 import * as ticketService from "../services/ticket.service.js";
+import { AppError } from "../errors/AppError.js";
 
 export async function createTicket(req, res, next) {
   try {
@@ -28,7 +29,10 @@ export async function getTicketById(req, res, next) {
   try {
     const ticket = await ticketService.getTicketById(req.params.id, req.user);
     if (!ticket) {
-      return res.status(404).json({ success: false, message: "Ticket not found" });
+      return next(new AppError("Ticket not found", {
+        statusCode: 404,
+        errorCode: "TICKET_NOT_FOUND",
+      }));
     }
     res.status(200).json({
       success: true,
@@ -43,7 +47,10 @@ export async function updateTicketStatus(req, res, next) {
   try {
     const ticket = await ticketService.updateTicketStatus(req.params.id, req.body.status, req.user);
     if (!ticket) {
-      return res.status(404).json({ success: false, message: "Ticket not found" });
+      return next(new AppError("Ticket not found", {
+        statusCode: 404,
+        errorCode: "TICKET_NOT_FOUND",
+      }));
     }
     res.status(200).json({
       success: true,

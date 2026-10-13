@@ -1,4 +1,5 @@
 import * as customerService from "../services/customer.service.js"
+import { AppError } from "../errors/AppError.js";
 
 export async function createCustomer(req, res, next){
     try{
@@ -51,10 +52,10 @@ export async function getCustomerById(req, res, next) {
     const customer = await customerService.getCustomerById(req.params.id, req.user);
     
     if(!customer){
-      return res.status(404).json({
-        success: false,
-        message: "Customer not found"
-      })
+      return next(new AppError("Customer not found", {
+        statusCode: 404,
+        errorCode: "CUSTOMER_NOT_FOUND",
+      }));
     }
     res.status(200).json({
       success: true,
@@ -75,10 +76,10 @@ export async function updateCustomer(req, res, next) {
     );
 
     if (!customer) {
-      return res.status(404).json({
-        success: false,
-        message: "Customer not found",
-      });
+      return next(new AppError("Customer not found", {
+        statusCode: 404,
+        errorCode: "CUSTOMER_NOT_FOUND",
+      }));
     }
 
     res.status(200).json({
@@ -134,10 +135,10 @@ export async function deleteCustomer(req, res, next) {
     );
 
     if (!customer) {
-      return res.status(404).json({
-        success: false,
-        message: "Customer not found",
-      });
+      return next(new AppError("Customer not found", {
+        statusCode: 404,
+        errorCode: "CUSTOMER_NOT_FOUND",
+      }));
     }
 
     res.status(200).json({

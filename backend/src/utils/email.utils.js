@@ -1,13 +1,17 @@
 import nodemailer from "nodemailer";
 import { env } from "../config/env.js";
+import { AppError } from "../errors/AppError.js";
+
 function getTransporter() {
   const user = env.EMAIL_USER;
   const pass = env.EMAIL_PASS;
 
   if (!user || !pass) {
-    throw new Error(
-      "Email credentials missing. Please set EMAIL_USER and EMAIL_PASS in backend/.env"
-    );
+    throw new AppError("Email credentials are not configured", {
+      statusCode: 500,
+      errorCode: "EMAIL_NOT_CONFIGURED",
+      isOperational: false,
+    });
   }
 
   return nodemailer.createTransport({

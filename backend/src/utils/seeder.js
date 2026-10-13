@@ -1,4 +1,4 @@
-import User from "../modals/user.schema.js";
+import User from "../models/user.schema.js";
 
 export async function seedAdminAccount() {
   try {

@@ -2,10 +2,10 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import { faker } from "@faker-js/faker";
 import bcrypt from "bcryptjs";
-import User from "./modals/user.schema.js";
-import Customer from "./modals/customer.schema.js";
-import Ticket from "./modals/ticket.schema.js";
-import Department from "./modals/department.schema.js";
+import User from "./models/user.schema.js";
+import Customer from "./models/customer.schema.js";
+import Ticket from "./models/ticket.schema.js";
+import Department from "./models/department.schema.js";
 import { env } from "./config/env.js";
 
 // Load environment variables
