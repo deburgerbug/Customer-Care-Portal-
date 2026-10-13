@@ -3,7 +3,7 @@ import { AppError } from "../errors/AppError.js";
 
 export async function createTicket(req, res, next) {
   try {
-    const ticket = await ticketService.createTicket(req.body, req.user);
+    const ticket = await ticketService.createTicket(req.validated.body, req.user);
     res.status(201).json({
       success: true,
       data: ticket,
@@ -15,7 +15,7 @@ export async function createTicket(req, res, next) {
 
 export async function getTickets(req, res, next) {
   try {
-    const data = await ticketService.getTickets(req.query, req.user);
+    const data = await ticketService.getTickets(req.validated.query, req.user);
     res.status(200).json({
       success: true,
       ...data,
@@ -27,7 +27,7 @@ export async function getTickets(req, res, next) {
 
 export async function getTicketById(req, res, next) {
   try {
-    const ticket = await ticketService.getTicketById(req.params.id, req.user);
+    const ticket = await ticketService.getTicketById(req.validated.params.id, req.user);
     if (!ticket) {
       return next(new AppError("Ticket not found", {
         statusCode: 404,
@@ -45,7 +45,11 @@ export async function getTicketById(req, res, next) {
 
 export async function updateTicketStatus(req, res, next) {
   try {
-    const ticket = await ticketService.updateTicketStatus(req.params.id, req.body.status, req.user);
+    const ticket = await ticketService.updateTicketStatus(
+      req.validated.params.id,
+      req.validated.body.status,
+      req.user
+    );
     if (!ticket) {
       return next(new AppError("Ticket not found", {
         statusCode: 404,
@@ -63,8 +67,13 @@ export async function updateTicketStatus(req, res, next) {
 
 export async function addComment(req, res, next) {
   try {
-    const { text, isInternal } = req.body;
-    const ticket = await ticketService.addComment(req.params.id, text, isInternal, req.user);
+    const { text, isInternal } = req.validated.body;
+    const ticket = await ticketService.addComment(
+      req.validated.params.id,
+      text,
+      isInternal,
+      req.user
+    );
     res.status(201).json({
       success: true,
       data: ticket,
@@ -95,7 +104,11 @@ export async function getMetrics(req, res, next) {
 
 export async function assignTicket(req, res, next) {
   try {
-    const ticket = await ticketService.assignTicket(req.params.id, req.body.employeeId, req.user);
+    const ticket = await ticketService.assignTicket(
+      req.validated.params.id,
+      req.validated.body.employeeId,
+      req.user
+    );
     res.status(200).json({
       success: true,
       data: ticket,

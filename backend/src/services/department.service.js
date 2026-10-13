@@ -1,21 +1,9 @@
 import Department from "../models/department.schema.js";
 import { AppError } from "../errors/AppError.js";
+import { escapeRegex } from "../utils/escapeRegex.js";
 
 function departmentError(message, statusCode, errorCode) {
   return new AppError(message, { statusCode, errorCode });
-}
-
-function normalizeDepartmentName(name) {
-  if (typeof name !== "string" || !name.trim()) {
-    throw departmentError("Department name is required", 400, "VALIDATION_ERROR");
-  }
-
-  const normalizedName = name.trim();
-  if (normalizedName.length > 80) {
-    throw departmentError("Department name cannot exceed 80 characters", 400, "VALIDATION_ERROR");
-  }
-
-  return normalizedName;
 }
 
 export async function findActiveDepartment(identifier) {
@@ -28,7 +16,7 @@ export async function findActiveDepartment(identifier) {
     return Department.findOne({ _id: value, status: true });
   }
 
-  const escapedName = value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const escapedName = escapeRegex(value);
   return Department.findOne({
     departmentName: { $regex: `^${escapedName}$`, $options: "i" },
     status: true,
@@ -45,7 +33,7 @@ export async function resolveActiveDepartment(identifier) {
 
 async function ensureDepartmentNameAvailable(name, exceptId) {
   const existingDepartment = await Department.findOne({
-    departmentName: { $regex: `^${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, $options: "i" },
+    departmentName: { $regex: `^${escapeRegex(name)}$`, $options: "i" },
     ...(exceptId ? { _id: { $ne: exceptId } } : {}),
   });
 
@@ -60,7 +48,7 @@ export async function getDepartments({ includeInactive = false } = {}) {
 }
 
 export async function createDepartment(name) {
-  const departmentName = normalizeDepartmentName(name);
+  const departmentName = name;
   await ensureDepartmentNameAvailable(departmentName);
 
   try {
@@ -74,7 +62,7 @@ export async function createDepartment(name) {
 }
 
 export async function updateDepartment(id, name) {
-  const departmentName = normalizeDepartmentName(name);
+  const departmentName = name;
   await ensureDepartmentNameAvailable(departmentName, id);
 
   try {

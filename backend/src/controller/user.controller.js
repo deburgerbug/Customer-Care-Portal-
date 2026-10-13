@@ -15,7 +15,7 @@ export async function createEmployee(req, res, next) {
   try {
     res.status(201).json({
       success: true,
-      data: await userService.createEmployee(req.body),
+      data: await userService.createEmployee(req.validated.body),
     });
   } catch (error) {
     next(error);
@@ -26,7 +26,11 @@ export async function updateEmployee(req, res, next) {
   try {
     res.status(200).json({
       success: true,
-      data: await userService.updateEmployee(req.params.id, req.body, req.user),
+      data: await userService.updateEmployee(
+        req.validated.params.id,
+        req.validated.body,
+        req.user
+      ),
     });
   } catch (error) {
     next(error);
@@ -35,7 +39,7 @@ export async function updateEmployee(req, res, next) {
 
 export async function deleteEmployee(req, res, next) {
   try {
-    await userService.deactivateEmployee(req.params.id);
+    await userService.deactivateEmployee(req.validated.params.id);
     res.status(200).json({
       success: true,
       message: "Employee deactivated successfully",

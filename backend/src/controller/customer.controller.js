@@ -3,7 +3,7 @@ import { AppError } from "../errors/AppError.js";
 
 export async function createCustomer(req, res, next){
     try{
-        const customer = await customerService.createCustomer(req.body, req.user);
+        const customer = await customerService.createCustomer(req.validated.body, req.user);
 
         res.status(201).json({
             success: true,
@@ -17,7 +17,7 @@ export async function createCustomer(req, res, next){
 
 export async function getCustomers(req, res, next) {
   try {
-    const { customers, pagination } = await customerService.getCustomers(req.query, req.user);
+    const { customers, pagination } = await customerService.getCustomers(req.validated.query, req.user);
 
     res.status(200).json({
       success: true,
@@ -49,7 +49,7 @@ export async function getMetrics(req, res, next) {
 
 export async function getCustomerById(req, res, next) {
   try{
-    const customer = await customerService.getCustomerById(req.params.id, req.user);
+    const customer = await customerService.getCustomerById(req.validated.params.id, req.user);
     
     if(!customer){
       return next(new AppError("Customer not found", {
@@ -70,8 +70,8 @@ export async function getCustomerById(req, res, next) {
 export async function updateCustomer(req, res, next) {
   try {
     const customer = await customerService.updateCustomer(
-      req.params.id,
-      req.body,
+      req.validated.params.id,
+      req.validated.body,
       req.user
     );
 
@@ -94,8 +94,8 @@ export async function updateCustomer(req, res, next) {
 export async function deleteSecondaryAddress(req, res, next) {
   try {
     const customer = await customerService.deleteSecondaryAddress(
-      req.params.customerId,
-      req.params.addressId,
+      req.validated.params.customerId,
+      req.validated.params.addressId,
       req.user
     );
 
@@ -112,8 +112,8 @@ export async function deleteSecondaryCommunication(req, res, next) {
   try {
     const customer =
       await customerService.deleteSecondaryCommunication(
-        req.params.customerId,
-        req.params.communicationId,
+        req.validated.params.customerId,
+        req.validated.params.communicationId,
         req.user
       );
 
@@ -130,7 +130,7 @@ export async function deleteSecondaryCommunication(req, res, next) {
 export async function deleteCustomer(req, res, next) {
   try {
     const customer = await customerService.deleteCustomer(
-      req.params.id,
+      req.validated.params.id,
       req.user
     );
 

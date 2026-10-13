@@ -34,5 +34,4 @@ export const env = result.data;
 
 export const allowedOrigin = env.ALLOWED_ORIGINS.split(",")
     .map((origin) => origin.trim())
-    .filter(boolean)
-
+    .filter(Boolean)
