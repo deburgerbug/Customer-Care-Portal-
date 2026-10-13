@@ -8,6 +8,7 @@ import {
 } from "../controller/department.controller.js";
 import { authenticate, requirePermission } from "../middleware/auth.middleware.js";
 import { PERMISSIONS } from "../config/permissions.js";
+import { AppError } from "../errors/AppError.js";
 
 const router = express.Router();
 
@@ -16,10 +17,10 @@ function requireAdmin(req, res, next) {
     return next();
   }
 
-  return res.status(403).json({
-    success: false,
-    message: "Forbidden: Admin access required",
-  });
+  return next(new AppError("Forbidden: Admin access required", {
+    statusCode: 403,
+    errorCode: "FORBIDDEN",
+  }));
 }
 
 router.use(authenticate, requireAdmin);

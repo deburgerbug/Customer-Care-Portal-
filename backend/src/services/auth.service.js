@@ -1,10 +1,15 @@
 import crypto from "crypto";
-import User from "../modals/user.schema.js";
-import Customer from "../modals/customer.schema.js";
+import User from "../models/user.schema.js";
+import Customer from "../models/customer.schema.js";
 import { resolveActiveDepartment } from "./department.service.js";
 import { env } from "../config/env.js";
 import {generateAccessToken,  generateRefreshToken, verifyRefreshToken} from "../utils/token.utils.js";
 import { sendPasswordResetEmail, sendVerificationEmail } from "../utils/email.utils.js";
+import { AppError } from "../errors/AppError.js";
+
+function authError(message, statusCode, errorCode) {
+  return new AppError(message, { statusCode, errorCode });
+}
 
 // Helper:Calculate 7 days expiry for refresh token storage
 const getRefreshExpiry = () => new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
@@ -15,7 +20,7 @@ export async function registerUser({ name, email, password, role = "customer", d
   //Check exisitng user
   const existingUser = await User.findOne({ email: normalizedEmail });
   if (existingUser) {
-    throw new Error("User with this email already exists");
+    throw authError("User with this email already exists", 409, "USER_ALREADY_EXISTS");
   }
 
   // Auto-link to existing Customer profile if email matches
@@ -51,6 +56,7 @@ export async function registerUser({ name, email, password, role = "customer", d
   const rawVerificationToken = user.createEmailVerificationToken();
   await user.save();
 
+  const frontendUrl = env.FRONTEND_URL;
   const verifyUrl = `${frontendUrl}/verify-email/${rawVerificationToken}`;
 
   try {
@@ -84,15 +90,15 @@ export async function loginUser({ email, password }) {
     .populate("department", "departmentName");
 
   if (!user || !(await user.comparePassword(password))) {
-    throw new Error("Invalid email or password");
+    throw authError("Invalid email or password", 401, "INVALID_CREDENTIALS");
   }
 
   if (!user.isActive) {
-    throw new Error("Account has been deactivated. Please contact support.");
+    throw authError("Account has been deactivated. Please contact support.", 403, "ACCOUNT_DEACTIVATED");
   }
 
   if (!user.isEmailVerified) {
-    throw new Error("Please verify your email address to log in.");
+    throw authError("Please verify your email address to log in.", 403, "EMAIL_VERIFICATION_REQUIRED");
   }
 
   //  Issue fresh token pair
@@ -117,7 +123,7 @@ export async function loginUser({ email, password }) {
 
 export async function refreshAccessToken(incomingToken) {
   if (!incomingToken) {
-    throw new Error("Refresh token is required");
+    throw authError("Refresh token is required", 400, "REFRESH_TOKEN_REQUIRED");
   }
 
   // Verify token signature
@@ -125,7 +131,7 @@ export async function refreshAccessToken(incomingToken) {
   try {
     decoded = verifyRefreshToken(incomingToken);
   } catch {
-    throw new Error("Invalid or expired refresh token");
+    throw authError("Invalid or expired refresh token", 401, "INVALID_REFRESH_TOKEN");
   }
 
   // Find user with active sessions
@@ -133,7 +139,7 @@ export async function refreshAccessToken(incomingToken) {
     .select("+refreshTokens")
     .populate("department", "departmentName");
   if (!user) {
-    throw new Error("User not found");
+    throw authError("User not found", 401, "INVALID_REFRESH_TOKEN");
   }
 
   // Check if token exists in user's active session list
@@ -144,7 +150,7 @@ export async function refreshAccessToken(incomingToken) {
   if (sessionIndex === -1) {
     user.refreshTokens = [];
     await user.save();
-    throw new Error("Invalid session. Please log in again.");
+    throw authError("Invalid session. Please log in again.", 401, "INVALID_SESSION");
   }
 
   // Token Rotation: Remove old refresh token and issue new pair
@@ -222,11 +228,11 @@ export async function forgotPassword(email) {
 
 export async function resetPassword(rawToken, newPassword) {
   if (!rawToken || !newPassword) {
-    throw new Error("Reset token and new password are required");
+    throw authError("Reset token and new password are required", 400, "RESET_CREDENTIALS_REQUIRED");
   }
 
   if (newPassword.length < 6) {
-    throw new Error("Password must be at least 6 characters");
+    throw authError("Password must be at least 6 characters", 400, "PASSWORD_TOO_SHORT");
   }
 
   // Hash the incoming raw token with SHA-256 to match DB
@@ -238,7 +244,7 @@ export async function resetPassword(rawToken, newPassword) {
   }).select("+passwordResetToken +passwordResetExpires");
 
   if (!user) {
-    throw new Error("Password reset token is invalid or has expired");
+    throw authError("Password reset token is invalid or has expired", 400, "INVALID_RESET_TOKEN");
   }
 
   // Set new password (pre-save hook will hash it)
@@ -255,7 +261,7 @@ export async function resetPassword(rawToken, newPassword) {
 
 export async function verifyEmail(rawToken) {
   if (!rawToken) {
-    throw new Error("Verification token is required");
+    throw authError("Verification token is required", 400, "VERIFICATION_TOKEN_REQUIRED");
   }
 
   // Hash the incoming raw token with SHA-256 to match DB
@@ -267,7 +273,7 @@ export async function verifyEmail(rawToken) {
   }).select("+emailVerificationToken +emailVerificationExpires");
 
   if (!user) {
-    throw new Error("Email verification token is invalid or has expired");
+    throw authError("Email verification token is invalid or has expired", 400, "INVALID_VERIFICATION_TOKEN");
   }
 
   // Mark as verified

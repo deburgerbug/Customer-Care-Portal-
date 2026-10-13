@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-import User from "../modals/user.schema.js";
-import Department from "../modals/department.schema.js";
+import User from "../models/user.schema.js";
+import Department from "../models/department.schema.js";
 import { env } from "../config/env.js";
 dotenv.config();
 

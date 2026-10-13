@@ -1,16 +1,18 @@
 import { verifyAccessToken } from "../utils/token.utils.js";
-import User from "../modals/user.schema.js";
+import User from "../models/user.schema.js";
 import { PERMISSIONS } from "../config/permissions.js";
+import { AppError } from "../errors/AppError.js";
+import { sanitizeCustomPermissions } from "../utils/permissions.utils.js";
 
 // Authenticate user via Bearer accessToken
 export async function authenticate(req, res, next) {
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({
-        success: false,
-        message: "Authentication required. Please provide a valid token.",
-      });
+      return next(new AppError(
+        "Authentication required. Please provide a valid token.",
+        { statusCode: 401, errorCode: "AUTHENTICATION_REQUIRED" }
+      ));
     }
 
     const token = authHeader.split(" ")[1];
@@ -18,18 +20,18 @@ export async function authenticate(req, res, next) {
     try {
       decoded = verifyAccessToken(token);
     } catch {
-      return res.status(401).json({
-        success: false,
-        message: "Token is invalid or expired. Please refresh your session.",
-      });
+      return next(new AppError(
+        "Token is invalid or expired. Please refresh your session.",
+        { statusCode: 401, errorCode: "INVALID_ACCESS_TOKEN" }
+      ));
     }
 
     const user = await User.findById(decoded.id).populate("department", "departmentName");
     if (!user || !user.isActive) {
-      return res.status(401).json({
-        success: false,
-        message: "User not found or account is deactivated.",
-      });
+      return next(new AppError(
+        "User not found or account is deactivated.",
+        { statusCode: 401, errorCode: "ACCOUNT_UNAVAILABLE" }
+      ));
     }
 
     // Attach sanitized user to request object
@@ -65,21 +67,6 @@ const ROLE_PERMISSIONS = {
   ]
 };
 
-export const VALID_PERMISSIONS = Object.values(PERMISSIONS);
-
-export function sanitizeCustomPermissions(customPermissions = []) {
-  if (!Array.isArray(customPermissions)) {
-    return [];
-  }
-
-  return [...new Set(
-    customPermissions
-      .filter((permission) => typeof permission === "string")
-      .map((permission) => permission.trim())
-      .filter((permission) => permission && permission !== "*" && VALID_PERMISSIONS.includes(permission))
-  )];
-}
-
 export function getEffectivePermissions(user) {
   if (!user) return [];
 
@@ -92,7 +79,10 @@ export function getEffectivePermissions(user) {
 export function requirePermission(requiredPermission) {
   return (req, res, next) => {
     if (!req.user) {
-      return res.status(401).json({ success: false, message: "Unauthorized" });
+      return next(new AppError("Unauthorized", {
+        statusCode: 401,
+        errorCode: "UNAUTHORIZED",
+      }));
     }
 
     const effectivePermissions = getEffectivePermissions(req.user);
@@ -101,9 +91,9 @@ export function requirePermission(requiredPermission) {
       return next();
     }
 
-    return res.status(403).json({
-      success: false,
-      message: `Forbidden: Missing required permission [${requiredPermission}]`,
-    });
+    return next(new AppError(
+      `Forbidden: Missing required permission [${requiredPermission}]`,
+      { statusCode: 403, errorCode: "FORBIDDEN" }
+    ));
   };
 }

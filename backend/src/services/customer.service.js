@@ -1,6 +1,11 @@
-import Customer from "../modals/customer.schema.js";
-import User from "../modals/user.schema.js";
-import { validateCustomerData } from "../utils/customer.validation.js";
+import Customer from "../models/customer.schema.js";
+import User from "../models/user.schema.js";
+import { validateCustomerData } from "../validators/customer.validator.js";
+import { AppError } from "../errors/AppError.js";
+
+function customerError(message, statusCode, errorCode) {
+  return new AppError(message, { statusCode, errorCode });
+}
 
 /**
  * Helper to generate database filter based on user role.
@@ -108,7 +113,7 @@ export async function getCustomerById(customerId, user) {
   });
 
   if (!customer) {
-    throw new Error("Customer not found");
+    throw customerError("Customer not found", 404, "CUSTOMER_NOT_FOUND");
   }
 
   // If an employee views their assigned customer, mark as viewed
@@ -153,16 +158,16 @@ export async function updateCustomer(customerId, customerData, user) {
 export async function deleteSecondaryAddress(customerId, addressId, user) {
   const customer = await Customer.findOne({ _id: customerId, ...getAuthFilter(user) });
   if (!customer) {
-    throw new Error("Customer not found");
+    throw customerError("Customer not found", 404, "CUSTOMER_NOT_FOUND");
   }
 
   const address = customer.addresses.id(addressId);
 
   if (!address) {
-    throw new Error("Address not found");
+    throw customerError("Address not found", 404, "ADDRESS_NOT_FOUND");
   }
   if (address.type === "primary") {
-    throw new Error("Primary address cannot be deleted");
+    throw customerError("Primary address cannot be deleted", 400, "PRIMARY_ADDRESS_REQUIRED");
   }
 
   customer.addresses.pull(addressId);
@@ -183,17 +188,17 @@ export async function deleteSecondaryCommunication(
   const customer = await Customer.findOne({ _id: customerId, ...getAuthFilter(user) });
 
   if (!customer) {
-    throw new Error("Customer not found");
+    throw customerError("Customer not found", 404, "CUSTOMER_NOT_FOUND");
   }
 
   const communication = customer.communications.id(communicationId);
 
   if (!communication) {
-    throw new Error("Communication not found");
+    throw customerError("Communication not found", 404, "COMMUNICATION_NOT_FOUND");
   }
 
   if (communication.type === "primary") {
-    throw new Error("Primary communication cannot be deleted");
+    throw customerError("Primary communication cannot be deleted", 400, "PRIMARY_COMMUNICATION_REQUIRED");
   }
 
   customer.communications.pull(communicationId);

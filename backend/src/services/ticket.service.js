@@ -1,7 +1,12 @@
-import Ticket from "../modals/ticket.schema.js";
-import Customer from "../modals/customer.schema.js";
-import User from "../modals/user.schema.js"
+import Ticket from "../models/ticket.schema.js";
+import Customer from "../models/customer.schema.js";
+import User from "../models/user.schema.js"
 import { findActiveDepartment } from "./department.service.js";
+import { AppError } from "../errors/AppError.js";
+
+function ticketError(message, statusCode, errorCode) {
+  return new AppError(message, { statusCode, errorCode });
+}
 /**
  * Filter tickets based on role:
  * - Admin: Sees all tickets
@@ -16,7 +21,11 @@ async function getTicketAuthFilter(user) {
 
 export async function createTicket(ticketData, user) {
   if (user.role === "customer" && !user.customerId) {
-    throw new Error("You must complete your customer profile before creating a support ticket.");
+    throw ticketError(
+      "You must complete your customer profile before creating a support ticket.",
+      400,
+      "CUSTOMER_PROFILE_REQUIRED"
+    );
   }
 
   // Force the customerId to be the logged-in customer if they are creating it
@@ -124,10 +133,10 @@ export async function updateTicketStatus(ticketId, status, user) {
   const filter = await getTicketAuthFilter(user);
   const ticket = await Ticket.findOne({ _id: ticketId, ...filter });
 
-  if (!ticket) throw new Error("Ticket not found");
+  if (!ticket) throw ticketError("Ticket not found", 404, "TICKET_NOT_FOUND");
 
   if (user.role === "employee" && ticket.assignedTo?.toString() !== user.id?.toString()) {
-    throw new Error("You can only update tickets assigned to you.");
+    throw ticketError("You can only update tickets assigned to you.", 403, "TICKET_FORBIDDEN");
   }
 
   ticket.status = status;
@@ -140,11 +149,11 @@ export async function addComment(ticketId, text, isInternal, user) {
   const ticket = await Ticket.findOne({ _id: ticketId, ...filter });
 
   if (!ticket) {
-    throw new Error("Ticket not found");
+    throw ticketError("Ticket not found", 404, "TICKET_NOT_FOUND");
   }
 
   if (user.role === "employee" && ticket.assignedTo?.toString() !== user.id?.toString()) {
-    throw new Error("You can only comment on tickets assigned to you.");
+    throw ticketError("You can only comment on tickets assigned to you.", 403, "TICKET_FORBIDDEN");
   }
 
   // Customers cannot add internal notes

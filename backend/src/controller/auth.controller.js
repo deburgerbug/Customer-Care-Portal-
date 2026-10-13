@@ -1,4 +1,5 @@
 import * as authService from "../services/auth.service.js";
+import { AppError } from "../errors/AppError.js";
 
 export async function register(req, res, next) {
   try {
@@ -58,7 +59,10 @@ export async function forgotPassword(req, res, next) {
   try {
     const { email } = req.body;
     if (!email) {
-      return res.status(400).json({ success: false, message: "Email is required" });
+      return next(new AppError("Email is required", {
+        statusCode: 400,
+        errorCode: "EMAIL_REQUIRED",
+      }));
     }
     const result = await authService.forgotPassword(email);
     res.status(200).json({
