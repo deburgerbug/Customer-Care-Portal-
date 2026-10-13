@@ -4,71 +4,34 @@ import crypto from "crypto";
 import { PERMISSIONS } from "../config/permissions.js";
 
 const refreshTokenSchema = new mongoose.Schema(
-  {
-    token: { type: String, required: true },
-    createdAt: { type: Date, default: Date.now },
-    expiresAt: { type: Date, required: true },
-  },
+  {token: { type: String, required: true }, createdAt: { type: Date, default: Date.now }, expiresAt: { type: Date, required: true }},
   { _id: true }
 );
 
 const userSchema = new mongoose.Schema(
-  {
-    name: {
-      type: String,
-      required: [true, "Name is required"],
-      trim: true,
-      minlength: [2, "Name must be at least 2 characters"],
-      maxlength: [60, "Name cannot exceed 60 characters"],
-    },
-    email: {
-      type: String,
-      required: [true, "Email is required"],
-      unique: true,
-      trim: true,
-      lowercase: true,
+  {name: {type: String,required: [true, "Name is required"], trim: true, minlength: [2, "Name must be at least 2 characters"], maxlength: [60, "Name cannot exceed 60 characters"]},
+    email: {type: String,required: [true, "Email is required"],unique: true,trim: true, lowercase: true, index: true,
       match: [
         /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
         "Please provide a valid email address",
-      ],
-      index: true,
+      ]
     },
+    password: {type: String, required: [true, "Password is required"],  minlength: [6, "Password must be at least 6 characters"], select: false,},
 
-    password: {
-      type: String,
-      required: [true, "Password is required"],
-      minlength: [6, "Password must be at least 6 characters"],
-      select: false,
-    },
-
-    role: {
-      type: String,
+    role: {type: String, default: "customer", index: true,
       enum: {
         values: ["super_admin", "admin", "employee", "customer"],
         message: "Role must be super_admin, admin, employee, or customer",
       },
-      default: "customer",
-      index: true,
+      
     },
 
-    department: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Department",
-      required: function () {
-        return this.role === "employee";
-      },
-    },
+    department: {type: mongoose.Schema.Types.ObjectId, ref: "Department", required: function () { return this.role === "employee";  
+    }},
 
-    customerId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Customer",
-      default: null,
-    },
+    customerId: {type: mongoose.Schema.Types.ObjectId, ref: "Customer", default: null},
 
-    customPermissions: {
-      type: [String],
-      default: [],
-      validate: {
+    customPermissions: { type: [String], default: [], validate: {
         validator(value) {
           if (!Array.isArray(value)) return false;
           const allowed = new Set(Object.values(PERMISSIONS));
@@ -82,40 +45,14 @@ const userSchema = new mongoose.Schema(
       },
     },
 
-    isActive: {
-      type: Boolean,
-      default: true,
-    },
-    refreshTokens: {
-      type: [refreshTokenSchema],
-      default: [],
-      select: false,
-    },
+    isActive: {type: Boolean, default: true,},
+    refreshTokens: { type: [refreshTokenSchema], default: [], select: false},
 
-    passwordResetToken: {
-      type: String,
-      select: false,
-    },
-
-    passwordResetExpires: {
-      type: Date,
-      select: false,
-    },
-
-    isEmailVerified: {
-      type: Boolean,
-      default: false,
-    },
-
-    emailVerificationToken: {
-      type: String,
-      select: false,
-    },
-
-    emailVerificationExpires: {
-      type: Date,
-      select: false,
-    },
+    passwordResetToken: { type: String, select: false},
+    passwordResetExpires: {type: Date, select: false },
+    isEmailVerified: { type: Boolean,default: false},
+    emailVerificationToken: { type: String, select: false},
+    emailVerificationExpires: {type: Date, select: false,},
   },
   { timestamps: true }
 );

@@ -2,11 +2,8 @@ import crypto from "crypto";
 import User from "../modals/user.schema.js";
 import Customer from "../modals/customer.schema.js";
 import { resolveActiveDepartment } from "./department.service.js";
-import {
-  generateAccessToken,
-  generateRefreshToken,
-  verifyRefreshToken,
-} from "../utils/token.utils.js";
+import { env } from "../config/env.js";
+import {generateAccessToken,  generateRefreshToken, verifyRefreshToken} from "../utils/token.utils.js";
 import { sendPasswordResetEmail, sendVerificationEmail } from "../utils/email.utils.js";
 
 // Helper:Calculate 7 days expiry for refresh token storage
@@ -54,11 +51,10 @@ export async function registerUser({ name, email, password, role = "customer", d
   const rawVerificationToken = user.createEmailVerificationToken();
   await user.save();
 
-  const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
   const verifyUrl = `${frontendUrl}/verify-email/${rawVerificationToken}`;
 
   try {
-    if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+    if (env.EMAIL_USER && env.EMAIL_PASS) {
       await sendVerificationEmail({
         to: user.email,
         verifyUrl,
@@ -197,12 +193,12 @@ export async function forgotPassword(email) {
   const rawResetToken = user.createPasswordResetToken();
   await user.save();
 
-  const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+  const frontendUrl = env.FRONTEND_URL;
   const resetUrl = `${frontendUrl}/reset-password/${rawResetToken}`;
 
   // Attempt real email dispatch if credentials configured in .env
   try {
-    if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+    if (env.EMAIL_USER && env.EMAIL_PASS) {
       await sendPasswordResetEmail({
         to: user.email,
         resetUrl,

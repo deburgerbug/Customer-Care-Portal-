@@ -1,4 +1,4 @@
-import * as customerService from "../service/customer.service.js"
+import * as customerService from "../services/customer.service.js"
 
 export async function createCustomer(req, res, next){
     try{

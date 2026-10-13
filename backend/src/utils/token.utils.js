@@ -1,10 +1,9 @@
 import jwt from "jsonwebtoken";
-
-const ACCESS_SECRET = process.env.JWT_ACCESS_SECRET || "access_secret_fallback_key";
-const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || "refresh_secret_fallback_key";
-
-const ACCESS_EXPIRES_IN = process.env.JWT_ACCESS_EXPIRES_IN || "15m";
-const REFRESH_EXPIRES_IN = process.env.JWT_REFRESH_EXPIRES_IN || "7d";
+import { env } from "../config/env.js";
+const ACCESS_SECRET = env.JWT_ACCESS_SECRET
+const REFRESH_SECRET = env.JWT_REFRESH_SECRET
+const ACCESS_EXPIRES_IN = env.JWT_ACCESS_EXPIRES_IN 
+const REFRESH_EXPIRES_IN = env.JWT_REFRESH_EXPIRES_IN 
 
 // Generate short-lived access token (15 mins) for stateless API access
 export function generateAccessToken(user) {

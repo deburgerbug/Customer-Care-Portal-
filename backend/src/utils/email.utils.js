@@ -1,8 +1,8 @@
 import nodemailer from "nodemailer";
-
+import { env } from "../config/env.js";
 function getTransporter() {
-  const user = process.env.EMAIL_USER;
-  const pass = process.env.EMAIL_PASS;
+  const user = env.EMAIL_USER;
+  const pass = env.EMAIL_PASS;
 
   if (!user || !pass) {
     throw new Error(
@@ -29,7 +29,7 @@ export async function sendPasswordResetEmail({ to, resetUrl, name }) {
   const recipientName = name || "Valued User";
 
   const mailOptions = {
-    from: `"Customer Care Portal" <${process.env.EMAIL_USER}>`,
+    from: `"Customer Care Portal" <${env.EMAIL_USER}>`,
     to,
     subject: "Password Reset Request — Customer Care Portal",
     text: `Hello ${recipientName},\n\nYou requested to reset your password.\nPlease open the link below to set a new password:\n\n${resetUrl}\n\nThis link is valid for 15 minutes. If you did not request this, please ignore this email.\n\nBest regards,\nCustomer Care Team`,
@@ -79,7 +79,7 @@ export async function sendVerificationEmail({ to, verifyUrl, name }) {
   const recipientName = name || "Valued User";
 
   const mailOptions = {
-    from: `"Customer Care Portal" <${process.env.EMAIL_USER}>`,
+    from: `"Customer Care Portal" <${env.EMAIL_USER}>`,
     to,
     subject: "Verify Your Email — Customer Care Portal",
     text: `Hello ${recipientName},\n\nThank you for registering.\nPlease open the link below to verify your email address:\n\n${verifyUrl}\n\nThis link is valid for 24 hours.\n\nBest regards,\nCustomer Care Team`,

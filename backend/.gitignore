@@ -1,3 +1,11 @@
 node_modules
 .env
+.env.*
+!.env.example
 docs/
+src/departmentCrud
+src/libraryCrud
+src/blog_mgmt
+src/wallet_mgmt
+correction.md
+enhancement.md
