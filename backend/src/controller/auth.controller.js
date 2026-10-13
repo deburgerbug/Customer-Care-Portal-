@@ -1,9 +1,8 @@
 import * as authService from "../services/auth.service.js";
-import { AppError } from "../errors/AppError.js";
 
 export async function register(req, res, next) {
   try {
-    const result = await authService.registerUser(req.body);
+    const result = await authService.registerUser(req.validated.body);
     res.status(201).json({
       success: true,
       message: "User registered successfully",
@@ -16,7 +15,7 @@ export async function register(req, res, next) {
 
 export async function login(req, res, next) {
   try {
-    const result = await authService.loginUser(req.body);
+    const result = await authService.loginUser(req.validated.body);
     res.status(200).json({
       success: true,
       message: "Login successful",
@@ -29,7 +28,7 @@ export async function login(req, res, next) {
 
 export async function refresh(req, res, next) {
   try {
-    const { refreshToken } = req.body;
+    const { refreshToken } = req.validated.body;
     const tokens = await authService.refreshAccessToken(refreshToken);
     res.status(200).json({
       success: true,
@@ -44,7 +43,7 @@ export async function refresh(req, res, next) {
 export async function logout(req, res, next) {
   try {
     const userId = req.user?.id;
-    const { refreshToken } = req.body;
+    const { refreshToken } = req.validated.body;
     await authService.logoutUser(userId, refreshToken);
     res.status(200).json({
       success: true,
@@ -57,13 +56,7 @@ export async function logout(req, res, next) {
 
 export async function forgotPassword(req, res, next) {
   try {
-    const { email } = req.body;
-    if (!email) {
-      return next(new AppError("Email is required", {
-        statusCode: 400,
-        errorCode: "EMAIL_REQUIRED",
-      }));
-    }
+    const { email } = req.validated.body;
     const result = await authService.forgotPassword(email);
     res.status(200).json({
       success: true,
@@ -76,8 +69,8 @@ export async function forgotPassword(req, res, next) {
 
 export async function resetPassword(req, res, next) {
   try {
-    const { token } = req.params;
-    const { password } = req.body;
+    const { token } = req.validated.params;
+    const { password } = req.validated.body;
     const result = await authService.resetPassword(token, password);
     res.status(200).json({
       success: true,
@@ -101,7 +94,7 @@ export async function getMe(req, res, next) {
 
 export async function verifyEmail(req, res, next) {
   try {
-    const { token } = req.params;
+    const { token } = req.validated.params;
     const result = await authService.verifyEmail(token);
     res.status(200).json({
       success: true,

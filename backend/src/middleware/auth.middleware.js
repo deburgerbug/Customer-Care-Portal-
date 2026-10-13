@@ -5,7 +5,7 @@ import { AppError } from "../errors/AppError.js";
 import { sanitizeCustomPermissions } from "../utils/permissions.utils.js";
 
 // Authenticate user via Bearer accessToken
-export async function authenticate(req, res, next) {
+export async function authenticate(req, _res, next) {
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith("Bearer ")) {

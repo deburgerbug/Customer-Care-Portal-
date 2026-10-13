@@ -1,7 +1,7 @@
 import Customer from "../models/customer.schema.js";
 import User from "../models/user.schema.js";
-import { validateCustomerData } from "../validators/customer.validator.js";
 import { AppError } from "../errors/AppError.js";
+import { escapeRegex } from "../utils/escapeRegex.js";
 
 function customerError(message, statusCode, errorCode) {
   return new AppError(message, { statusCode, errorCode });
@@ -26,8 +26,6 @@ function getAuthFilter(user) {
  * @param {Object} user - Authenticated user context
  */
 export async function createCustomer(customerData, user) {
-  validateCustomerData(customerData);
-
   if (user.role === "customer") {
     if (user.customerId) {
       const existingCustomer = await Customer.findById(user.customerId);
@@ -68,7 +66,7 @@ export async function getCustomers(queryOptions = {}, user) {
   const filter = getAuthFilter(user);
 
   if (search) {
-    const searchRegex = new RegExp(search, "i");
+    const searchRegex = new RegExp(escapeRegex(search), "i");
     filter.$or = [
       { firstName: searchRegex },
       { lastName: searchRegex },
@@ -136,7 +134,6 @@ export async function getUnreadAssignedCount(employeeId) {
  * @param {Object} user - Authenticated user context
  */
 export async function updateCustomer(customerId, customerData, user) {
-  validateCustomerData(customerData);
   const customer = await Customer.findOneAndUpdate(
     { _id: customerId, ...getAuthFilter(user) },
     customerData,

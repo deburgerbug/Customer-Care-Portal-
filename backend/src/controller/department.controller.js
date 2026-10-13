@@ -2,7 +2,7 @@ import * as departmentService from "../services/department.service.js";
 
 export async function getDepartments(req, res, next) {
   try {
-    const includeInactive = req.query.includeInactive === "true";
+    const { includeInactive } = req.validated.query;
     const departments = await departmentService.getDepartments({ includeInactive });
 
     res.status(200).json({
@@ -16,7 +16,7 @@ export async function getDepartments(req, res, next) {
 
 export async function createDepartment(req, res, next) {
   try {
-    const department = await departmentService.createDepartment(req.body.departmentName);
+    const department = await departmentService.createDepartment(req.validated.body.departmentName);
 
     res.status(201).json({
       success: true,
@@ -31,8 +31,8 @@ export async function createDepartment(req, res, next) {
 export async function updateDepartment(req, res, next) {
   try {
     const department = await departmentService.updateDepartment(
-      req.params.id,
-      req.body.departmentName
+      req.validated.params.id,
+      req.validated.body.departmentName
     );
 
     res.status(200).json({
@@ -47,7 +47,7 @@ export async function updateDepartment(req, res, next) {
 
 export async function deactivateDepartment(req, res, next) {
   try {
-    const department = await departmentService.deactivateDepartment(req.params.id);
+    const department = await departmentService.deactivateDepartment(req.validated.params.id);
 
     res.status(200).json({
       success: true,
@@ -61,7 +61,7 @@ export async function deactivateDepartment(req, res, next) {
 
 export async function reactivateDepartment(req, res, next) {
   try {
-    const department = await departmentService.reactivateDepartment(req.params.id);
+    const department = await departmentService.reactivateDepartment(req.validated.params.id);
 
     res.status(200).json({
       success: true,
