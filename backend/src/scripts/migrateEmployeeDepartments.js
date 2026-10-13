@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import User from "../modals/user.schema.js";
 import Department from "../modals/department.schema.js";
-
+import { env } from "../config/env.js";
 dotenv.config();
 
 function escapeRegex(value) {
@@ -10,7 +10,7 @@ function escapeRegex(value) {
 }
 
 async function migrateEmployeeDepartments() {
-  const mongoUri = process.env.MONGO_URI || "mongodb://localhost:27017/customerCrud";
+  const mongoUri = env.MONGO_URI || "mongodb://localhost:27017/customerCrud";
   await mongoose.connect(mongoUri);
 
   try {

@@ -1,4 +1,4 @@
-import * as departmentService from "../service/department.service.js";
+import * as departmentService from "../services/department.service.js";
 
 export async function getDepartments(req, res, next) {
   try {

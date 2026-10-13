@@ -1,7 +1,7 @@
 import User from "../modals/user.schema.js";
 import Ticket from "../modals/ticket.schema.js";
 import { sanitizeCustomPermissions } from "../middleware/auth.middleware.js";
-import { resolveActiveDepartment } from "../service/department.service.js";
+import { resolveActiveDepartment } from "../services/department.service.js";
 
 export async function getEmployees(req, res, next) {
   try {

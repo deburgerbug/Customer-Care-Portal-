@@ -6,11 +6,12 @@ import User from "./modals/user.schema.js";
 import Customer from "./modals/customer.schema.js";
 import Ticket from "./modals/ticket.schema.js";
 import Department from "./modals/department.schema.js";
+import { env } from "./config/env.js";
 
 // Load environment variables
 dotenv.config();
 
-const MONGODB_URI = process.env.MONGO_URI || "mongodb://localhost:27017/customerCrud";
+const MONGODB_URI =env.MONGO_URI;
 
 async function seedDatabase() {
   try {

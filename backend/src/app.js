@@ -5,6 +5,8 @@ import authRoutes from "./routes/auth.routes.js"
 import userRoutes from "./routes/user.routes.js"
 import ticketRoutes from "./routes/ticket.routes.js"
 import departmentRoutes from "./routes/department.routes.js"
+import depRoutes from "./departmentCrud/dep.routes.js"
+import libraryRoutes from "./libraryCrud/library.routes.js"
 import { errorMiddleware } from './middleware/error.middleware.js'
 const app = express()
 app.use(express.json())
@@ -21,6 +23,7 @@ app.use("/users", userRoutes)
 app.use("/departments", departmentRoutes)
 app.use("/customers", customerRoutes)
 app.use("/tickets", ticketRoutes)
-
+app.use("/dep", depRoutes)
+app.use("/api/library", libraryRoutes)
 app.use(errorMiddleware)
 export default app;
