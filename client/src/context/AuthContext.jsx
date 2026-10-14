@@ -1,6 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState, useEffect } from "react";
-import { getMe, logoutUser } from "../services/authAPI";
+import { getMe, logoutUser, refreshAccessToken } from "../services/authAPI";
+import { clearAccessToken, setAccessToken } from "../utils/apiClient";
 import { ROLE_PERMISSIONS } from "./authPermissions.js";
 
 const AuthContext = createContext(null);
@@ -9,52 +10,44 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // On app load, hydrate the user from localStorage and refresh from the backend.
+  // Restore the session from the HttpOnly refresh cookie on app load.
   useEffect(() => {
-    const refreshUserFromServer = async () => {
-      const savedUser = localStorage.getItem("user");
-      const accessToken = localStorage.getItem("accessToken");
-
-      if (!savedUser || !accessToken) {
-        setUser(null);
-        setIsLoading(false);
-        return;
-      }
-
+    const restoreSession = async () => {
       try {
+        await refreshAccessToken();
         const response = await getMe();
-        const refreshedUser = response?.user || JSON.parse(savedUser);
-        localStorage.setItem("user", JSON.stringify(refreshedUser));
-        setUser(refreshedUser);
+        localStorage.setItem("user", JSON.stringify(response.user));
+        setUser(response.user);
       } catch {
-        setUser(JSON.parse(savedUser));
+        clearAccessToken();
+        localStorage.removeItem("user");
+        setUser(null);
       } finally {
         setIsLoading(false);
       }
     };
 
-    refreshUserFromServer();
+    restoreSession();
   }, []);
 
-  // Save tokens and user to localStorage + state
+  // Keep the access token in memory and persist only the non-sensitive profile.
   function saveAuth(data) {
-    localStorage.setItem("accessToken", data.accessToken);
-    localStorage.setItem("refreshToken", data.refreshToken);
+    if (data.accessToken) {
+      setAccessToken(data.accessToken);
+    }
     localStorage.setItem("user", JSON.stringify(data.user));
     setUser(data.user);
   }
 
-  // Clear everything on logout
+  // Revoke the current refresh session and clear local authentication state.
   async function logout() {
     try {
-      const refreshToken = localStorage.getItem("refreshToken");
-      await logoutUser(refreshToken);
+      await logoutUser();
     } catch {
       // Ignore API errors — we clear tokens anyway
     }
 
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
+    clearAccessToken();
     localStorage.removeItem("user");
     setUser(null);
   }

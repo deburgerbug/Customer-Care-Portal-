@@ -1,104 +1,94 @@
 const BASE_URL = "http://localhost:3000";
+const REFRESH_URL = `${BASE_URL}/auth/refresh`;
 
-let isRefreshing = false;
-let refreshSubscribers = [];
+let accessToken = null;
+let refreshPromise = null;
 
-// Adds failed requests to a queue while token is being refreshed
-function subscribeTokenRefresh(cb) {
-  refreshSubscribers.push(cb);
+export function setAccessToken(token) {
+  accessToken = token || null;
 }
 
-// Executes all queued requests with the new token
-function onRefreshed(token) {
-  refreshSubscribers.map((cb) => cb(token));
-  refreshSubscribers = [];
+export function clearAccessToken() {
+  accessToken = null;
 }
 
-/**
- * A custom fetch wrapper that handles automatic JWT refresh.
- * It catches 401 Unauthorized errors, calls the refresh endpoint,
- * and retries the original request with the new access token.
- */
-export async function apiClient(endpoint, options = {}) {
-  const url = endpoint.startsWith("http") ? endpoint : `${BASE_URL}${endpoint}`;
-  
-  // Set up headers
-  const headers = {
-    "Content-Type": "application/json",
-    ...options.headers,
-  };
+function clearSessionAndRedirect() {
+  clearAccessToken();
+  localStorage.removeItem("user");
+  window.location.href = "/login";
+}
 
-  let token = localStorage.getItem("accessToken");
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
+export async function refreshAccessToken() {
+  if (!refreshPromise) {
+    refreshPromise = (async () => {
+      const refresh = async () => {
+        const response = await fetch(REFRESH_URL, {
+          method: "POST",
+          credentials: "include",
+        });
+        const data = await response.json();
+
+        if (!response.ok || !data.accessToken) {
+          throw new Error(data.message || "Session expired. Please log in again.");
+        }
+
+        setAccessToken(data.accessToken);
+        return data.accessToken;
+      };
+
+      if (navigator.locks) {
+        // Serialize refresh-token rotation across browser tabs.
+        return navigator.locks.request("customer-care-auth-refresh", refresh);
+      }
+
+      return refresh();
+    })().finally(() => {
+      refreshPromise = null;
+    });
   }
 
-  // Attempt the initial fetch
-  let response = await fetch(url, { ...options, headers });
+  return refreshPromise;
+}
 
-  // If response is 401 (Unauthorized) and it's NOT a login or refresh request itself
-  if (response.status === 401 && !url.includes("/auth/refresh") && !url.includes("/auth/login")) {
-    const refreshToken = localStorage.getItem("refreshToken");
-    
-    // No refresh token available -> Force logout
-    if (!refreshToken) {
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("user");
-      window.location.href = "/login";
-      throw new Error("Session expired. Please log in again.");
+export async function apiClient(endpoint, options = {}) {
+  const url = endpoint.startsWith("http") ? endpoint : `${BASE_URL}${endpoint}`;
+  const makeRequest = (token) => {
+    const headers = new Headers(options.headers);
+
+    if (options.body && !headers.has("Content-Type")) {
+      headers.set("Content-Type", "application/json");
+    }
+    if (token) {
+      headers.set("Authorization", `Bearer ${token}`);
     }
 
-    // Wrap the original request in a Promise that waits for the new token
-    const retryOriginalRequest = new Promise((resolve, reject) => {
-      subscribeTokenRefresh((newToken) => {
-        if (!newToken) {
-          return reject(new Error("Session expired. Please log in again."));
-        }
-        // Replace the old token in the headers with the new one
-        headers.Authorization = `Bearer ${newToken}`;
-        resolve(fetch(url, { ...options, headers }));
-      });
+    return fetch(url, {
+      ...options,
+      headers,
+      credentials: "include",
     });
+  };
 
-    // If a refresh isn't already in progress, start one
-    if (!isRefreshing) {
-      isRefreshing = true;
-      try {
-        const refreshResponse = await fetch(`${BASE_URL}/auth/refresh`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ refreshToken }),
-        });
+  let response = await makeRequest(accessToken);
+  const isRefreshRequest = url === REFRESH_URL;
+  const isLoginRequest = url.endsWith("/auth/login");
 
-        const refreshData = await refreshResponse.json();
-
-        if (!refreshResponse.ok) {
-          throw new Error("Refresh token expired or invalid");
-        }
-
-        // Save new tokens
-        localStorage.setItem("accessToken", refreshData.accessToken);
-        localStorage.setItem("refreshToken", refreshData.refreshToken);
-
-        isRefreshing = false;
-        // Notify all waiting requests to retry with the new token
-        onRefreshed(refreshData.accessToken);
-      } catch {
-        isRefreshing = false;
-        // Notify all waiting requests that refresh failed
-        onRefreshed(null);
-        
-        // Refresh failed (likely expired) -> clear storage and redirect
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
-        localStorage.removeItem("user");
-        window.location.href = "/login";
-        throw new Error("Session expired. Please log in again.");
+  if (
+    response.status === 401 &&
+    accessToken &&
+    !isRefreshRequest &&
+    !isLoginRequest
+  ) {
+    try {
+      const refreshedToken = await refreshAccessToken();
+      response = await makeRequest(refreshedToken);
+      if (response.status === 401) {
+        clearSessionAndRedirect();
       }
+    } catch (error) {
+      clearSessionAndRedirect();
+      throw error;
     }
-
-    // Await the retried request
-    response = await retryOriginalRequest;
   }
 
   return response;

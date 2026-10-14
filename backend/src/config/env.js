@@ -3,6 +3,7 @@ import {z} from "zod"
 import { logger } from "../utils/logger.js";
 
 const allowedOriginsSchema = z.string()
+    .default("http://localhost:5173")
     .transform((value) => value.split(",").map((origin) => origin.trim()))
     .pipe(z.array(
         z.url().refine((origin) => {
@@ -14,6 +15,7 @@ const allowedOriginsSchema = z.string()
                 !parsedOrigin.hash
             )
         }, "Each allowed origin must be an HTTP or HTTPS origin without a path")
+            .transform((origin) => new URL(origin).origin)
     ).min(1, "At least one allowed origin is required"))
 
 const envSchema = z.object({
@@ -27,7 +29,7 @@ const envSchema = z.object({
     JWT_REFRESH_EXPIRES_IN: z.string().default("7d"),
 
     FRONTEND_URL: z.string().url().default("http://localhost:5173"),
-    ALLOWED_ORIGINS: allowedOriginsSchema.default("http://localhost:5173"),
+    ALLOWED_ORIGINS: allowedOriginsSchema,
     
     EMAIL_USER: z.string().optional(),
     EMAIL_PASS: z.string().optional()
