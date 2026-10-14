@@ -1,133 +1,91 @@
-export const API_URL = "http://localhost:3000/auth";
+import {
+  apiClient,
+  refreshAccessToken as refreshFromCookie,
+  setAccessToken,
+} from "../utils/apiClient";
+
+export const API_URL = "/auth";
+
+async function authRequest(path, options, fallbackMessage) {
+  const response = await apiClient(`${API_URL}${path}`, options);
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || fallbackMessage);
+  }
+
+  return data;
+}
 
 export async function loginUser({ email, password }) {
-  const response = await fetch(`${API_URL}/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password }),
-  });
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data.message || "Login failed");
-  }
-
-  return data;
-}
-
-export async function registerUser({ name, email, password, role, department }) {
-  const response = await fetch(`${API_URL}/register`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, email, password, role, department }),
-  });
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data.message || "Registration failed");
-  }
-
-  return data;
-}
-
-export async function logoutUser(refreshToken) {
-  const accessToken = localStorage.getItem("accessToken");
-
-  const response = await fetch(`${API_URL}/logout`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${accessToken}`,
+  const data = await authRequest(
+    "/login",
+    {
+      method: "POST",
+      body: JSON.stringify({ email, password }),
     },
-    body: JSON.stringify({ refreshToken }),
-  });
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data.message || "Logout failed");
-  }
-
+    "Login failed"
+  );
+  setAccessToken(data.accessToken);
   return data;
 }
 
-export async function refreshAccessToken(refreshToken) {
-  const response = await fetch(`${API_URL}/refresh`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ refreshToken }),
-  });
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data.message || "Token refresh failed");
-  }
-
-  return data;
-}
-
-export async function getMe() {
-  const accessToken = localStorage.getItem("accessToken");
-
-  const response = await fetch(`${API_URL}/me`, {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
+export function registerUser({ name, email, password, role, department }) {
+  return authRequest(
+    "/register",
+    {
+      method: "POST",
+      body: JSON.stringify({ name, email, password, role, department }),
     },
-  });
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data.message || "Failed to get user");
-  }
-
-  return data;
+    "Registration failed"
+  );
 }
 
-export async function forgotPassword(email) {
-  const response = await fetch(`${API_URL}/forgot-password`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email }),
-  });
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data.message || "failed to send reset link");
-  }
-
-  return data;
+export function logoutUser() {
+  return authRequest(
+    "/logout",
+    {
+      method: "POST",
+    },
+    "Logout failed"
+  );
 }
 
-export async function resetPassword(token, password) {
-  const response = await fetch(`${API_URL}/reset-password/${token}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ password })
-  });
-
-  const data = await response.json()
-
-  if (!response.ok) {
-    throw new Error(data.message || "failed to reset password")
-  }
-  return data;
+export async function refreshAccessToken() {
+  const accessToken = await refreshFromCookie();
+  return { accessToken };
 }
 
-export async function verifyEmail(token) {
-  const response = await fetch(`${API_URL}/verify-email/${token}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" }
-  });
+export function getMe() {
+  return authRequest("/me", undefined, "Failed to get user");
+}
 
-  const data = await response.json();
+export function forgotPassword(email) {
+  return authRequest(
+    "/forgot-password",
+    {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    },
+    "Failed to send reset link"
+  );
+}
 
-  if (!response.ok) {
-    throw new Error(data.message || "failed to verify email");
-  }
-  return data;
+export function resetPassword(token, password) {
+  return authRequest(
+    `/reset-password/${encodeURIComponent(token)}`,
+    {
+      method: "POST",
+      body: JSON.stringify({ password }),
+    },
+    "Failed to reset password"
+  );
+}
+
+export function verifyEmail(token) {
+  return authRequest(
+    `/verify-email/${encodeURIComponent(token)}`,
+    { method: "POST" },
+    "Failed to verify email"
+  );
 }

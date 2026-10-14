@@ -313,12 +313,7 @@ function CustomerForm() {
         if (user?.role === "customer") {
           // Update the user object in localStorage and AuthContext
           const updatedUser = { ...user, customerId: createdId };
-          const tokens = {
-            accessToken: localStorage.getItem("accessToken"),
-            refreshToken: localStorage.getItem("refreshToken"),
-            user: updatedUser
-          };
-          saveAuth(tokens);
+          saveAuth({ user: updatedUser });
           navigate("/customer/profile");
         } else {
           navigate(`${basePath}/customers/${createdId}`);

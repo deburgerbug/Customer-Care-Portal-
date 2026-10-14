@@ -15,14 +15,6 @@ export const loginSchema = z.object({
   password: z.string().min(1, "Password is required"),
 }).strict();
 
-export const refreshSchema = z.object({
-  refreshToken: z.string().min(1, "Refresh token is required"),
-}).strict();
-
-export const logoutSchema = z.object({
-  refreshToken: z.string().optional(),
-}).strict();
-
 export const forgotPasswordSchema = z.object({
   email: emailSchema,
 }).strict();

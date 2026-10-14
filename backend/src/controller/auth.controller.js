@@ -1,4 +1,9 @@
 import * as authService from "../services/auth.service.js";
+import {
+  clearRefreshCookie,
+  REFRESH_COOKIE_NAME,
+  setRefreshCookie,
+} from "../utils/refreshCookie.js";
 
 export async function register(req, res, next) {
   try {
@@ -16,10 +21,12 @@ export async function register(req, res, next) {
 export async function login(req, res, next) {
   try {
     const result = await authService.loginUser(req.validated.body);
+    const { refreshToken, ...response } = result;
+    setRefreshCookie(res, refreshToken);
     res.status(200).json({
       success: true,
       message: "Login successful",
-      ...result,
+      ...response,
     });
   } catch (error) {
     next(error);
@@ -28,12 +35,13 @@ export async function login(req, res, next) {
 
 export async function refresh(req, res, next) {
   try {
-    const { refreshToken } = req.validated.body;
+    const refreshToken = req.cookies[REFRESH_COOKIE_NAME];
     const tokens = await authService.refreshAccessToken(refreshToken);
+    setRefreshCookie(res, tokens.refreshToken);
     res.status(200).json({
       success: true,
       message: "Tokens refreshed successfully",
-      ...tokens,
+      accessToken: tokens.accessToken,
     });
   } catch (error) {
     next(error);
@@ -43,8 +51,9 @@ export async function refresh(req, res, next) {
 export async function logout(req, res, next) {
   try {
     const userId = req.user?.id;
-    const { refreshToken } = req.validated.body;
+    const refreshToken = req.cookies[REFRESH_COOKIE_NAME];
     await authService.logoutUser(userId, refreshToken);
+    clearRefreshCookie(res);
     res.status(200).json({
       success: true,
       message: "Logged out successfully",

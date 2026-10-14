@@ -38,9 +38,9 @@ function LoginPage() {
 
     try {
       setIsSubmitting(true);
-      // Call POST /auth/login → returns { user, accessToken, refreshToken }
+      // Login returns the user and access token; the refresh token is an HttpOnly cookie.
       const data = await loginUser({ email, password });
-      // Save tokens to localStorage + update AuthContext state
+      // Keep the access token in memory and update AuthContext state.
       saveAuth(data);
 
       // Smart Routing based on role

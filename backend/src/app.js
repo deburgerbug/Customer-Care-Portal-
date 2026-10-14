@@ -1,5 +1,6 @@
 import express from 'express'
 import cors from 'cors'
+import cookieParser from 'cookie-parser'
 import helmet from 'helmet'
 import customerRoutes from "./routes/customer.routes.js"
 import authRoutes from "./routes/auth.routes.js"
@@ -15,8 +16,10 @@ app.use(requestLogger)
 app.use(express.json())
 app.use(cors({
     origin: allowedOrigin,
+    credentials: true,
     optionsSuccessStatus: 200
 }))
+app.use(cookieParser())
 
 app.get("/check",(req,res)=>{
     res.json({

@@ -171,17 +171,12 @@ export async function refreshAccessToken(incomingToken) {
 }
 
 export async function logoutUser(userId, tokenToRevoke) {
-  if (!userId) return;
+  if (!userId || !tokenToRevoke) return;
 
   const user = await User.findById(userId).select("+refreshTokens");
   if (!user) return;
 
-  if (tokenToRevoke) {
-    user.refreshTokens = user.refreshTokens.filter((t) => t.token !== tokenToRevoke);
-  } else {
-    user.refreshTokens = []; // Logout all sessions
-  }
-
+  user.refreshTokens = user.refreshTokens.filter((t) => t.token !== tokenToRevoke);
   await user.save();
 }
 
