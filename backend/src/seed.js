@@ -7,6 +7,7 @@ import Customer from "./models/customer.schema.js";
 import Ticket from "./models/ticket.schema.js";
 import Department from "./models/department.schema.js";
 import { env } from "./config/env.js";
+import { logger } from "./utils/logger.js";
 
 // Load environment variables
 dotenv.config();
@@ -15,16 +16,16 @@ const MONGODB_URI =env.MONGO_URI;
 
 async function seedDatabase() {
   try {
-    console.log("🌱 Connecting to MongoDB...");
+    logger.info("Connecting to MongoDB for database seeding");
     await mongoose.connect(MONGODB_URI);
-    console.log("✅ Connected.");
+    logger.info("Connected to MongoDB");
 
-    console.log("🗑️ Wiping existing database...");
+    logger.info("Clearing existing seed data");
     await User.deleteMany({});
     await Customer.deleteMany({});
     await Ticket.deleteMany({});
     await Department.deleteMany({});
-    console.log("✅ Database wiped.");
+    logger.info("Existing seed data cleared");
 
     const departmentNames = ["Sales", "Billing", "HR", "Network", "Management"];
     const departments = await Department.insertMany(
@@ -38,7 +39,7 @@ async function seedDatabase() {
     // ==========================================
     // 1. CREATE ADMINS & EMPLOYEES
     // ==========================================
-    console.log("👷 Generating Staff...");
+    logger.info("Generating staff seed data");
 
     // Create 1 Super Admin and 2 Admins
     const staff = [];
@@ -82,7 +83,7 @@ async function seedDatabase() {
     // ==========================================
     // 2. CREATE CUSTOMERS
     // ==========================================
-    console.log("👥 Generating Customers...");
+    logger.info("Generating customer seed data");
     const customersData = [];
     const customerUsersData = [];
 
@@ -142,7 +143,7 @@ async function seedDatabase() {
     // ==========================================
     // 3. CREATE TICKETS
     // ==========================================
-    console.log("🎫 Generating Support Tickets...");
+    logger.info("Generating ticket seed data");
     const ticketsData = [];
 
     // Generate ~150 tickets randomly assigned across customers
@@ -181,18 +182,19 @@ async function seedDatabase() {
 
     await Ticket.insertMany(ticketsData);
 
-    console.log("==========================================");
-    console.log("🎉 Seeding Complete! Here is your test data:");
-    console.log(`- Super Admin: superadmin@example.com`);
-    console.log(`- Admins: admin1@example.com, admin2@example.com`);
-    console.log(`- Employees: agent1@example.com to agent10@example.com`);
-    console.log(`- Customers: customer1@example.com to customer50@example.com`);
-    console.log(`- Password for ALL accounts: ${COMMON_PASSWORD}`);
-    console.log("==========================================");
+    logger.info(
+      {
+        staffCount: staff.length,
+        customerCount: createdCustomers.length,
+        customerUserCount: createdCustomerUsers.length,
+        ticketCount: ticketsData.length,
+      },
+      "Database seeding completed"
+    );
 
     process.exit(0);
   } catch (error) {
-    console.error("❌ Error seeding database:", error);
+    logger.error({ err: error }, "Database seeding failed");
     process.exit(1);
   }
 }

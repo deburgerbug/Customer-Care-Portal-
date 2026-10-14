@@ -1,4 +1,5 @@
 import { AppError } from "../errors/AppError.js";
+import { logger } from "../utils/logger.js";
 
 export function errorMiddleware(error, req, res, next) {
   if (res.headersSent) {
@@ -7,7 +8,7 @@ export function errorMiddleware(error, req, res, next) {
 
   if (error instanceof AppError) {
     if (error.statusCode >= 500) {
-      console.error(error);
+      logger.error({ err: error, requestId: req.id }, "Application error");
       return res.status(error.statusCode).json({
         success: false,
         errorCode: error.errorCode,
@@ -65,7 +66,7 @@ export function errorMiddleware(error, req, res, next) {
     });
   }
 
-  console.error(error);
+  logger.error({ err: error, requestId: req.id }, "Unhandled request error");
   return res.status(500).json({
     success: false,
     errorCode: "INTERNAL_SERVER_ERROR",
