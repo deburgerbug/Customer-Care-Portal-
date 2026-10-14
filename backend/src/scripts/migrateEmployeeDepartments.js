@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import User from "../models/user.schema.js";
 import Department from "../models/department.schema.js";
 import { env } from "../config/env.js";
+import { logger } from "../utils/logger.js";
 dotenv.config();
 
 function escapeRegex(value) {
@@ -58,13 +59,16 @@ async function migrateEmployeeDepartments() {
       );
     }
 
-    console.log(`Migrated department values for ${employees.length} employee(s).`);
+    logger.info(
+      { migratedEmployeeCount: employees.length },
+      "Employee department migration completed"
+    );
   } finally {
     await mongoose.disconnect();
   }
 }
 
 migrateEmployeeDepartments().catch((error) => {
-  console.error("Failed to migrate employee departments:", error);
+  logger.error({ err: error }, "Employee department migration failed");
   process.exitCode = 1;
 });

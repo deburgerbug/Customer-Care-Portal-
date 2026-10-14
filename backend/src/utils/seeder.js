@@ -1,4 +1,5 @@
 import User from "../models/user.schema.js";
+import { logger } from "./logger.js";
 
 export async function seedAdminAccount() {
   try {
@@ -14,11 +15,11 @@ export async function seedAdminAccount() {
         isEmailVerified: true, // Auto-verify the seeded admin
         isActive: true,
       });
-      console.log(`[Seeder] Admin account created: ${adminEmail} / Admin@123`);
+      logger.info({ email: adminEmail }, "Seed admin account created");
     } else {
-      console.log(`[Seeder] Admin account already exists: ${adminEmail}`);
+      logger.info({ email: adminEmail }, "Seed admin account already exists");
     }
   } catch (error) {
-    console.error("[Seeder] Error seeding admin account:", error);
+    logger.error({ err: error }, "Failed to seed admin account");
   }
 }

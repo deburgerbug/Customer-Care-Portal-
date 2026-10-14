@@ -3,6 +3,7 @@ import User from "../models/user.schema.js";
 import Customer from "../models/customer.schema.js";
 import { resolveActiveDepartment } from "./department.service.js";
 import { env } from "../config/env.js";
+import { logger } from "../utils/logger.js";
 import {generateAccessToken,  generateRefreshToken, verifyRefreshToken} from "../utils/token.utils.js";
 import { sendPasswordResetEmail, sendVerificationEmail } from "../utils/email.utils.js";
 import { AppError } from "../errors/AppError.js";
@@ -67,12 +68,10 @@ export async function registerUser({ name, email, password, role = "customer", d
         name: user.name,
       });
     } else {
-      console.warn(
-        "[Nodemailer] EMAIL_USER or EMAIL_PASS not set in backend/.env — verification email skipped."
-      );
+      logger.warn("Verification email skipped because email credentials are not configured");
     }
   } catch (emailError) {
-    console.error("[Nodemailer] Delivery failed:", emailError.message);
+    logger.error({ err: emailError }, "Verification email delivery failed");
   }
 
   return {
@@ -211,12 +210,10 @@ export async function forgotPassword(email) {
         name: user.name,
       });
     } else {
-      console.warn(
-        "[Nodemailer] EMAIL_USER or EMAIL_PASS not set in backend/.env — email skipped."
-      );
+      logger.warn("Password reset email skipped because email credentials are not configured");
     }
   } catch (emailError) {
-    console.error("[Nodemailer] Delivery failed:", emailError.message);
+    logger.error({ err: emailError }, "Password reset email delivery failed");
   }
 
   return {
