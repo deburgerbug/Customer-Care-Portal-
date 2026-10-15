@@ -2,6 +2,7 @@ import Ticket from "../models/ticket.schema.js";
 import Customer from "../models/customer.schema.js";
 import User from "../models/user.schema.js"
 import { findActiveDepartment } from "./department.service.js";
+import { createAuditLog } from "./auditLogs.service.js";
 import { AppError } from "../errors/AppError.js";
 
 function ticketError(message, statusCode, errorCode) {
@@ -34,6 +35,18 @@ export async function createTicket(ticketData, user) {
   }
 
   const ticket = await Ticket.create(ticketData);
+  await createAuditLog({
+    entity: ticket._id,
+    actor: user.id || user._id,
+    action: "created",
+    changes: {
+      status: ticket.status,
+      priority: ticket.priority,
+      customerId: ticket.customerId,
+      assignedTo: ticket.assignedTo,
+    },
+    description: "Ticket created",
+  });
   return ticket;
 }
 
@@ -139,8 +152,25 @@ export async function updateTicketStatus(ticketId, status, user) {
     throw ticketError("You can only update tickets assigned to you.", 403, "TICKET_FORBIDDEN");
   }
 
+  const previousStatus = ticket.status;
   ticket.status = status;
   await ticket.save();
+
+  if (previousStatus !== ticket.status) {
+    await createAuditLog({
+      entity: ticket._id,
+      actor: user.id || user._id,
+      action: "status_changed",
+      changes: {
+        status: {
+          from: previousStatus,
+          to: ticket.status,
+        },
+      },
+      description: `Ticket status changed from ${previousStatus} to ${ticket.status}`,
+    });
+  }
+
   return ticket;
 }
 
@@ -167,7 +197,18 @@ export async function addComment(ticketId, text, isInternal, user) {
     isInternal,
   });
 
+  const comment = ticket.comments[ticket.comments.length - 1];
   await ticket.save();
+  await createAuditLog({
+    entity: ticket._id,
+    actor: user.id || user._id,
+    action: "comment_added",
+    changes: {
+      commentId: comment._id,
+      isInternal: comment.isInternal,
+    },
+    description: "Ticket comment added",
+  });
   await ticket.populate("comments.userId", "name role");
 
   if (user.role === "customer") {
@@ -185,12 +226,31 @@ export async function getOpenTicketCount() {
 }
 
 export async function assignTicket(ticketId, employeeId, user) {
+  const ticket = await Ticket.findById(ticketId);
+  if (!ticket) {
+    throw ticketError("Ticket not found", 404, "TICKET_NOT_FOUND");
+  }
 
-  const ticket = await Ticket.findByIdAndUpdate(
-    ticketId,
-    { assignedTo: employeeId || null },
-    { new: true }
-  ).populate("assignedTo", "name email");
+  const previousAssignee = ticket.assignedTo?.toString() || null;
+  ticket.assignedTo = employeeId || null;
+  await ticket.save();
 
-  return ticket;
+  const nextAssignee = ticket.assignedTo?.toString() || null;
+  if (previousAssignee !== nextAssignee) {
+    const isUnassigned = nextAssignee === null;
+    await createAuditLog({
+      entity: ticket._id,
+      actor: user.id || user._id,
+      action: isUnassigned ? "unassigned" : "assigned",
+      changes: {
+        assignedTo: {
+          from: previousAssignee,
+          to: nextAssignee,
+        },
+      },
+      description: isUnassigned ? "Ticket unassigned" : "Ticket assigned",
+    });
+  }
+
+  return ticket.populate("assignedTo", "name email");
 }
