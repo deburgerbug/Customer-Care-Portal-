@@ -7,6 +7,7 @@ import authRoutes from "./routes/auth.routes.js"
 import userRoutes from "./routes/user.routes.js"
 import ticketRoutes from "./routes/ticket.routes.js"
 import departmentRoutes from "./routes/department.routes.js"
+import auditLogsRoutes from "./routes/auditLogs.routes.js"
 import { errorMiddleware } from './middleware/error.middleware.js'
 import { allowedOrigin } from "./config/env.js"
 import { requestLogger } from "./middleware/requestLogger.middleware.js"
@@ -32,5 +33,6 @@ app.use("/users", userRoutes)
 app.use("/departments", departmentRoutes)
 app.use("/customers", customerRoutes)
 app.use("/tickets", ticketRoutes)
+app.use("/audits", auditLogsRoutes)
 app.use(errorMiddleware)
 export default app;

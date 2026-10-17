@@ -13,7 +13,7 @@ function customerError(message, statusCode, errorCode) {
  * - Employee: sees assigned customers
  * - Customer: sees only their own profile
  */
-function getAuthFilter(user) {
+export function getAuthFilter(user) {
   if (user.role === "admin" || user.role === "super_admin") return {};
   if (user.role === "employee") return { assignedTo: user.id };
   if (user.role === "customer") return { _id: user.customerId || null };
